@@ -6,19 +6,18 @@ import aiopg
 import asyncio
 import logging
 import argparse
+import importlib
 
 
 LOGGER = logging.getLogger('pg_bawler.listener')
 
 _cli_description = """\
------
 Listen on given channel for notification.
 
     $ python -m pg_bawler.listener mychannel
 
 If you installed notification trigger with ``pg_bawler.gen_sql`` then
 channel is the same as ``tablename`` argument.
------
 """
 __doc__ = _cli_description
 
@@ -63,10 +62,19 @@ def get_default_cli_args_parser():
         metavar='DSN',
         help='Connection string. e.g. `dbname=test user=postgres`')
     parser.add_argument(
+        '--handler',
+        metavar='HANDLER', default='pg_bawler.listener:default_handler',
+        help=(
+            'Module and name of python callable.'
+            ' e.g. `pg_bawler.listener:default_handler`'))
+    parser.add_argument(
         'channel',
         metavar='CHANNEL', type=str,
         help='Name of Notify/Listen channel to listen on.')
     return parser
+
+
+default_handler = DefaultHandler().handle_notification
 
 
 def main():
@@ -74,14 +82,13 @@ def main():
     logging.basicConfig(
         format='[%(asctime)s][%(name)s][%(levelname)s]: %(message)s',
         level=logging.DEBUG)
-    channel = 'contract_audit'
-    handler = DefaultHandler()
     LOGGER.info('Starting pg_bawler listener for channel: %s', args.channel)
+    module_name, callable_name = args.handler.split(':')
     loop = asyncio.get_event_loop()
     loop.run_until_complete(
         amain(
             args.channel,
-            handler.handle_notification,
+            getattr(importlib.import_module(module_name), callable_name),
             {'dsn': args.dsn}))
 
 
