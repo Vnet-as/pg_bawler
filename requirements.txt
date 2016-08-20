@@ -1,2 +1,2 @@
-Jinja2
-aiopg
+Jinja2==2.8
+aiopg==0.10.0
