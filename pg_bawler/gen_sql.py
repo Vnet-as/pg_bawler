@@ -76,25 +76,29 @@ def get_default_tpl_loader():
 
 
 def _get_and_render_template(context, tpl_loader, tpl_name):
+    tpl_loader = tpl_loader or get_default_tpl_loader()
     return tpl_loader.get_template(tpl_name).render(**context)
 
 
 def get_trigger_function_code(
-    context, tpl_loader,
+    context,
+    tpl_loader=None,
     tpl_name=TRIGGER_FUNCTION_TEMPLATE
 ):
     return _get_and_render_template(context, tpl_loader, tpl_name)
 
 
 def get_drop_trigger_statement(
-    context, tpl_loader,
+    context,
+    tpl_loader=None,
     tpl_name=DROP_TRIGGER_TEMPLATE
 ):
     return _get_and_render_template(context, tpl_loader, tpl_name)
 
 
 def get_create_trigger_statement(
-    context, tpl_loader,
+    context,
+    tpl_loader=None,
     tpl_name=CREATE_TRIGGER_TEMPLATE
 ):
     return _get_and_render_template(context, tpl_loader, tpl_name)
