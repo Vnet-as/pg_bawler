@@ -3,6 +3,7 @@ version: '2'
 services:
   pg_bawler:
     build: .
+    command: /bin/sh live_runtests.sh
     volumes:
       - /usr/local/lib/
       - .:/code
