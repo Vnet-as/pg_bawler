@@ -1,4 +1,4 @@
 #!/bin/sh
 
-pip install -Ue .
+# pip install -Ue .
 python -m pytest
