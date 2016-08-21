@@ -7,7 +7,6 @@ import argparse
 
 
 _cli_description = """\
------
 Generate trigger function and installation sql statements.
 
 For most basic usage you need only name of the table you
@@ -20,7 +19,6 @@ create trigger statements. Thus installation should be
 easy as:
 
     $ python -m pg_bawler.gen_sql mytable | psql mydb
------
 """
 __doc__ = _cli_description
 
