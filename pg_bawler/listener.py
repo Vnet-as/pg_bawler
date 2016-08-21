@@ -46,7 +46,7 @@ async def listen(connection, channel, handler):
             handler(notification)
 
 
-async def amain(channel, handle_fn, connection_kwargs):
+async def listen_forever(channel, handle_fn, connection_kwargs):
     async with aiopg.create_pool(**connection_kwargs) as pg_pool:
         async with pg_pool.acquire() as connection:
             listener = listen(connection, channel, handle_fn)
@@ -86,7 +86,7 @@ def main():
     module_name, callable_name = args.handler.split(':')
     loop = asyncio.get_event_loop()
     loop.run_until_complete(
-        amain(
+        listen_forever(
             args.channel,
             getattr(importlib.import_module(module_name), callable_name),
             {'dsn': args.dsn}))
