@@ -1,7 +1,10 @@
+# mk style virtualenvs
+.pg_bawler
 *.py[cod]
 
 # C extensions
 *.so
+.cache
 
 # Packages
 *.egg
