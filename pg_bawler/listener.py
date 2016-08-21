@@ -27,7 +27,7 @@ class DefaultHandler:
     def __init__(self):
         self.count = 0
 
-    def handle_notification(self, notification):
+    async def handle_notification(self, notification):
         self.count += 1
         LOGGER.info(
             'Reveived notification #%s pid %s from channel %s: %s',
@@ -43,7 +43,7 @@ async def listen(connection, channel, handler):
             LOGGER.debug(
                 'Received notification from channel %s: %s',
                 channel, notification.payload)
-            handler(notification)
+            await handler(notification)
 
 
 async def listen_forever(channel, handle_fn, connection_kwargs):
