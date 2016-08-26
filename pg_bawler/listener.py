@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-import sys
-import aiopg
-import asyncio
-import logging
 import argparse
+import asyncio
 import importlib
+import logging
+import sys
+
+import aiopg
 
 
 LOGGER = logging.getLogger('pg_bawler.listener')
@@ -92,5 +92,5 @@ def main():
             {'dsn': args.dsn}))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     sys.exit(main())
