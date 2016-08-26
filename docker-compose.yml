@@ -1,6 +1,7 @@
 version: '2'
 
 services:
+
   pg_bawler:
     build: .
     command: /bin/sh live_runtests.sh
@@ -9,6 +10,7 @@ services:
       - .:/code
     depends_on:
       - postgres
+    container_name: pg_bawler-test-lib
 
   postgres:
     image: postgres:latest
