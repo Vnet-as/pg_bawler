@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Listen on given channel for notification.
+
+    $ python -m pg_bawler.listener mychannel
+
+If you installed notification trigger with ``pg_bawler.gen_sql`` then
+channel is the same as ``tablename`` argument.
+"""
 import argparse
 import asyncio
 import importlib
@@ -11,16 +19,6 @@ import aiopg
 
 LOGGER = logging.getLogger('pg_bawler.listener')
 
-_cli_description = """\
-Listen on given channel for notification.
-
-    $ python -m pg_bawler.listener mychannel
-
-If you installed notification trigger with ``pg_bawler.gen_sql`` then
-channel is the same as ``tablename`` argument.
-"""
-__doc__ = _cli_description
-
 
 class DefaultHandler:
 
@@ -30,7 +28,7 @@ class DefaultHandler:
     async def handle_notification(self, notification):
         self.count += 1
         LOGGER.info(
-            'Reveived notification #%s pid %s from channel %s: %s',
+            'Received notification #%s pid %s from channel %s: %s',
             self.count, notification.pid,
             notification.channel, notification.payload)
 
@@ -55,7 +53,7 @@ async def listen_forever(channel, handle_fn, connection_kwargs):
 
 def get_default_cli_args_parser():
     parser = argparse.ArgumentParser(
-        description=_cli_description,
+        description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument(
         '--dsn',
