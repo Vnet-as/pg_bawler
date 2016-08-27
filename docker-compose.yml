@@ -2,16 +2,21 @@ version: '2'
 
 services:
 
+  postgres:
+    image: postgres:latest
+    container_name: pg_bawler-test-pg
+    environment: &pg_environment
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: pg_bawler_test
+      POSTGRES_DB: pg_bawler_test
+
   pg_bawler:
     build: .
-    command: /bin/sh live_runtests.sh
+    command: watchmedo tricks-from watchmedo-tricks.yaml
     volumes:
-      - /usr/local/lib/
       - .:/code
     depends_on:
       - postgres
     container_name: pg_bawler-test-lib
-
-  postgres:
-    image: postgres:latest
-    container_name: pg_bawler-test-pg
+    environment:
+      <<: *pg_environment
