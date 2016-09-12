@@ -3,7 +3,7 @@
     hooks:
     -   id: check-merge-conflict
     -   id: end-of-file-fixer
-    -   id: fix-encoding-pragma
+      # -   id: fix-encoding-pragma
     -   id: check-docstring-first
     -   id: autopep8-wrapper
         language_version: python3.5
