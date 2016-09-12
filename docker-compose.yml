@@ -20,3 +20,4 @@ services:
     container_name: pg_bawler-test-lib
     environment:
       <<: *pg_environment
+      PYTHONASYNCIODEBUG: 1
