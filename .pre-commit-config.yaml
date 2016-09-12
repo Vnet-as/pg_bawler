@@ -1,0 +1,27 @@
+-   repo: git://github.com/pre-commit/pre-commit-hooks
+    sha: 09d1747840bfb1457e9b8876b4c1f577d00a2a37
+    hooks:
+    -   id: check-merge-conflict
+    -   id: end-of-file-fixer
+      # -   id: fix-encoding-pragma
+    -   id: check-docstring-first
+    -   id: autopep8-wrapper
+        language_version: python3.5
+    -   id: double-quote-string-fixer
+    -   id: trailing-whitespace
+    -   id: debug-statements
+        language_version: python3.5
+    -   id: check-ast
+        language_version: python3.5
+    -   id: flake8
+        language_version: python3.5
+-   repo: https://github.com/asottile/reorder_python_imports
+    sha: b022734351abe44d0b05a71a4fa1175287c59b49
+    hooks:
+    -   id: reorder-python-imports
+        language_version: python3.5
+  # -   repo: git://github.com/pre-commit/mirrors-pylint
+  #     sha: 4de6c8dfadef1a271a814561ce05b8bc1c446d22
+  #     hooks:
+  #     -   id: pylint
+  #         language_version: python3.5

@@ -1,12 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-import sys
-import jinja2
-import argparse
-
-
-_cli_description = """\
+"""
 Generate trigger function and installation sql statements.
 
 For most basic usage you need only name of the table you
@@ -20,7 +14,10 @@ easy as:
 
     $ python -m pg_bawler.gen_sql mytable | psql mydb
 """
-__doc__ = _cli_description
+import argparse
+import sys
+
+import jinja2
 
 
 TRIGGER_FUNCTION_TEMPLATE = 'trigger.sql.tpl'
@@ -33,7 +30,7 @@ TRIGGER_NAME_FMT = 'bawler_trigger_{args.tablename}'
 
 def get_default_cli_args_parser():
     parser = argparse.ArgumentParser(
-        description=_cli_description,
+        description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument(
         'tablename',
@@ -126,5 +123,5 @@ def main():
         sys.stdout.write(get_create_trigger_statement(context, tpl_loader))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     sys.exit(main())

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """pg_bawler - Notify/listen python helpers for postgresql."""
 
 __version__ = '0.1.0'

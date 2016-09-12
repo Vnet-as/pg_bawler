@@ -1,0 +1,5 @@
+tricks:
+- watchdog.tricks.ShellCommandTrick:
+    patterns: ["*.py"]
+    shell_command: "python -m pytest tests"
+    drop_during_process: true

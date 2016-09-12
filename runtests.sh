@@ -1,4 +1,4 @@
 #!/bin/sh
 
 # pip install -Ue .
-python -m pytest
+pre-commit run --all-files && python -m pytest
