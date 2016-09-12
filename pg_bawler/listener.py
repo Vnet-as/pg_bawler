@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Listen on given channel for notification.
 
@@ -14,7 +13,7 @@ import importlib
 import logging
 import sys
 
-import aiopg
+import pg_bawler.core
 
 
 LOGGER = logging.getLogger('pg_bawler.listener')
@@ -27,28 +26,11 @@ class DefaultHandler:
 
     async def handle_notification(self, notification):
         self.count += 1
+        notification_number = self.count
         LOGGER.info(
             'Received notification #%s pid %s from channel %s: %s',
-            self.count, notification.pid,
+            notification_number, notification.pid,
             notification.channel, notification.payload)
-
-
-async def listen(connection, channel, handler):
-    async with connection.cursor() as cursor:
-        await cursor.execute('LISTEN {channel}'.format(channel=channel))
-        while True:
-            notification = await connection.notifies.get()
-            LOGGER.debug(
-                'Received notification from channel %s: %s',
-                channel, notification.payload)
-            await handler(notification)
-
-
-async def listen_forever(channel, handle_fn, connection_kwargs):
-    async with aiopg.create_pool(**connection_kwargs) as pg_pool:
-        async with pg_pool.acquire() as connection:
-            listener = listen(connection, channel, handle_fn)
-            await asyncio.gather(listener)
 
 
 def get_default_cli_args_parser():
@@ -72,7 +54,19 @@ def get_default_cli_args_parser():
     return parser
 
 
+def resolve_handler(handler_str):
+    module_name, callable_name = handler_str.split(':')
+    return getattr(importlib.import_module(module_name), callable_name)
+
+
 default_handler = DefaultHandler().handle_notification
+
+
+class NotificationListener(
+    pg_bawler.core.BawlerBase,
+    pg_bawler.core.ListenerMixin
+):
+    pass
 
 
 def main():
@@ -81,13 +75,12 @@ def main():
         format='[%(asctime)s][%(name)s][%(levelname)s]: %(message)s',
         level=logging.DEBUG)
     LOGGER.info('Starting pg_bawler listener for channel: %s', args.channel)
-    module_name, callable_name = args.handler.split(':')
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(
-        listen_forever(
-            args.channel,
-            getattr(importlib.import_module(module_name), callable_name),
-            {'dsn': args.dsn}))
+    listener = NotificationListener(connection_params={'dsn': args.dsn})
+    listener.listen_timeout = 5
+    listener.handler = resolve_handler(args.handler)
+    loop.run_until_complete(listener.register_channel(args.channel))
+    loop.run_until_complete(listener.listen())
 
 
 if __name__ == '__main__':
