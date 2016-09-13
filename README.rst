@@ -12,13 +12,14 @@ Installation
 Requirements
 ^^^^^^^^^^^^
 
-Compatibility
--------------
+Python 3.5+
 
 Licence
 -------
 
+BSD License
+
 Authors
 -------
 
-`pg_bawler` was written by `Michal Kuffa <michal.kuffa@gmail.com>`_.
+`Vnet a.s.<http://vnet.sk>`_
