@@ -22,4 +22,4 @@ BSD License
 Authors
 -------
 
-`Vnet a.s.<http://vnet.sk>`_
+`Vnet a.s. <http://vnet.sk>`_
