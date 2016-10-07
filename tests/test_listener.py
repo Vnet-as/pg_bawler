@@ -28,8 +28,8 @@ async def test_simple_listen():
         pass
 
     connection_params = dict(
-        dbname='pg_bawler_test',
-        user='pg_bawler_test',
+        dbname='bawler_test',
+        user='bawler_test',
         host='postgres',
         password='postgres')
 
