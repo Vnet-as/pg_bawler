@@ -78,7 +78,7 @@ def main():
     loop = asyncio.get_event_loop()
     listener = NotificationListener(connection_params={'dsn': args.dsn})
     listener.listen_timeout = 5
-    listener.handler = resolve_handler(args.handler)
+    listener.register_handler(resolve_handler(args.handler))
     loop.run_until_complete(listener.register_channel(args.channel))
     loop.run_until_complete(listener.listen())
 
