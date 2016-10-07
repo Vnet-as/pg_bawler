@@ -1,4 +1,4 @@
-"""
+'''
 ==============
 pg_bawler.core
 ==============
@@ -6,7 +6,7 @@ pg_bawler.core
 Base classes for LISTEN / NOTIFY.  Postgresql documentation for
 `LISTEN<https://www.postgresql.org/docs/current/static/sql-listen.html>`_ /
 `NOTIFY<https://www.postgresql.org/docs/current/static/sql-notify.html>`_.
-"""
+'''
 import asyncio
 import logging
 
@@ -32,9 +32,9 @@ def cache_async_def(func):
 
 
 class BawlerBase:
-    """
+    '''
     Base ``pg_bawler`` class with convenience methods around ``aiopg``.
-    """
+    '''
 
     def __init__(self, *, connection_params, loop=None):
         self.connection_params = connection_params
@@ -67,11 +67,10 @@ class ListenerMixin:
 
     CHANNEL_REGISTRATION_TPL = 'LISTEN {channel}'
     listen_timeout = None
-    reset_connection_on_timeout = False
     _stopped = False
-    _reset_connection = False
 
     def stop(self):
+        # TODO: Politely close all opened connections.
         self._stopped = True
 
     @property
@@ -101,13 +100,43 @@ class ListenerMixin:
                 notification.channel, notification.payload)
             return notification
 
+    def register_handler(self, handler):
+        '''
+        Registers ``handler`` with this listener and returns handlers index in
+        the list of handlers.
+        '''
+        if not hasattr(self, 'handlers'):
+            self.handlers = [handler]
+        else:
+            self.handlers.append(handler)
+        return len(self.handlers) - 1
+
+    def unregister_handler(self, handler):
+        '''
+        Unregisters ``handler`` by removing it from handlers list.
+
+        Returns ``True`` if handler was successfully removed, ``False``
+        otherwise.
+        '''
+        # TODO: Should we raise exception here?
+        #       Like [].remove, raises ValueError
+        try:
+            self.handlers.remove(handler)
+        except AttributeError:
+            LOGGER.debug('No handlers registered yet.')
+            return False
+        except ValueError:
+            LOGGER.debug('Handler is not registered.')
+            return False
+        else:
+            LOGGER.debug('Handler %s unregistered.')
+            return True
+
     async def listen(self):
         while not self.is_stopped:
             notification = await self.get_notification()
-            # If Queue.get() for notifications timed out,
-            # we may want to reset connection or just continue
+            # TODO: If Queue.get() for notifications timed out,
+            #       we may want to reset connection or just continue
             if notification:
-                self.loop.create_task(self.handler(notification))
-            else:
-                if self.reset_connection_on_timeout:
-                    self.reset_connection()
+                for handler in getattr(self, 'handlers', []):
+                    self.loop.create_task(handler(notification))
