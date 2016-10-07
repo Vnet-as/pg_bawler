@@ -4,6 +4,14 @@ import pytest
 import pg_bawler.core
 
 
+def test_register_handlers():
+    listener = pg_bawler.core.ListenerMixin()
+    assert listener.register_handler(None) == 0
+    assert listener.register_handler(True) == 1
+    assert listener.unregister_handler(None)
+    assert not listener.unregister_handler(None)
+
+
 @pytest.mark.asyncio
 async def test_simple_listen():
 
