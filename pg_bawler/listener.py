@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-"""
+'''
 Listen on given channel for notification.
 
     $ python -m pg_bawler.listener mychannel
 
 If you installed notification trigger with ``pg_bawler.gen_sql`` then
 channel is the same as ``tablename`` argument.
-"""
+'''
 import argparse
 import asyncio
 import importlib
