@@ -102,7 +102,7 @@ class ListenerMixin:
 
     def register_handler(self, handler):
         '''
-        Registers ``handler`` with this listener and returns handlers index in
+        Registers ``handler`` with this listener and returns handler's index in
         the list of handlers.
         '''
         if not hasattr(self, 'handlers'):
