@@ -13,9 +13,8 @@ services:
   pg_bawler:
     build: .
     command: watchmedo tricks-from watchmedo-tricks.yaml
-    # command: sh wait_and_listen.sh
     volumes:
-      - .:/code
+      - .:/opt/pg_bawler
     depends_on:
       - postgres
     container_name: pg_bawler-test-lib
