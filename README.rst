@@ -1,10 +1,17 @@
+
 pg_bawler
 =========
 
 .. image:: https://travis-ci.org/Vnet-as/pg_bawler.svg?branch=master
     :target: https://travis-ci.org/Vnet-as/pg_bawler
 
+
+.. image:: https://coveralls.io/repos/github/Vnet-as/pg_bawler/badge.svg?branch=master
+    :target: https://coveralls.io/github/Vnet-as/pg_bawler?branch=master
+
+
 Notify/listen python helpers for postgresql.
+
 
 Usage
 -----

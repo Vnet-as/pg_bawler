@@ -16,8 +16,9 @@ python:
 install:
   - pip install -r requirements.txt
   - pip install -r test-requirements.txt
+  - pip install codecov
 
 script: python -m pytest --cov=pg_bawler --cov-report=term-missing tests
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - codecov
