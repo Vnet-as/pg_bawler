@@ -1,0 +1,20 @@
+sudo: required
+language: python
+
+services:
+  - postgresql
+
+before_script:
+  - psql -c 'create database bawler_test;' -U postgres
+
+python:
+  - "3.5"
+  - "3.5-dev"
+  - "3.6-dev"
+  - "nightly"
+
+install:
+  - pip install -r requirements.txt
+  - pip install -r test-requirements.txt
+
+script: python -m pytest --cov=pg_bawler --cov-report=term-missing tests
