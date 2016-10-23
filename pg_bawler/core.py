@@ -93,6 +93,20 @@ class ListenerMixin:
             LOGGER.debug(
                 'Timed out. No notification for last %s seconds.',
                 self.listen_timeout)
+            LOGGER.debug(
+                'Checking health of connection.')
+            async with (await self.pg_connection()).cursor() as pg_cursor:
+                await pg_cursor.execute('SELECT 1')
+                is_healthy = await pg_cursor.fetchone() == (1, )
+            if is_healthy:
+                LOGGER.debug('Connection looks to be OK.')
+            else:
+                LOGGER.error('Failed postgres connection!')
+                LOGGER.info('Dropping this connection and creating new one.')
+                pg_conn = (await self.pg_connection())
+                pg_conn.close()
+                await (await self.pg_pool()).release(pg_conn)
+                del self.pg_connection.cache_attr_name
             return None
         else:
             LOGGER.debug(
