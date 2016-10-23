@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import os
+
 import pytest
 
 import pg_bawler.core
@@ -28,10 +30,10 @@ async def test_simple_listen():
         pass
 
     connection_params = dict(
-        dbname='bawler_test',
-        user='bawler_test',
-        host='postgres',
-        password='postgres')
+        dbname=os.environ.get('POSTGRES_DB', 'bawler_test'),
+        user=os.environ.get('POSTGRES_USER', 'postgres'),
+        host=os.environ.get('POSTGRES_HOST'),
+        password=os.environ.get('POSTGRES_PASSWORD', ''))
 
     nl = NotificationListener(connection_params=connection_params)
     ns = NotificationSender(connection_params=connection_params)
