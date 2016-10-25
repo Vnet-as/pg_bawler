@@ -3,7 +3,10 @@ pg_bawler
 =========
 
 .. image:: https://travis-ci.org/Vnet-as/pg_bawler.svg?branch=master
-    :target: https://travis-ci.org/Vnet-as/pg_bawler
+   :target: https://travis-ci.org/Vnet-as/pg_bawler
+
+.. image:: https://codecov.io/gh/Vnet-as/pg_bawler/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/Vnet-as/pg_bawler
 
 
 Notify/listen python helpers for postgresql.
