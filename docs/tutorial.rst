@@ -26,6 +26,15 @@ Now let's ensure that PostgreSQL is running and we can connect to it::
         (1 row)
 
 
+Trigger installation
+--------------------
+
+``pg_bawler.gen_sql``
+
+
+Running pg_bawler listener
+--------------------------
+
 Now we are running containered PostgreSQL in container named
 ``bawler-tutorial``. Let's get it's IP address so we are able to connect to it also from local ``pg_bawler``.
 
