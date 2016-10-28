@@ -45,6 +45,31 @@ Trigger installation
 
 ``pg_bawler.gen_sql``
 
+::
+
+	$ python -m pg_bawler.gen_sql foo
+	CREATE OR REPLACE FUNCTION bawler_trigger_fn_foo() RETURNS TRIGGER AS $$
+	    DECLARE
+		row RECORD;
+	    BEGIN
+		IF (TG_OP = 'DELETE')
+		THEN
+			row := OLD;
+		ELSE
+			row := NEW;
+		END IF;
+		PERFORM pg_notify('foo', TG_OP || ' ' || to_json(row)::text);
+		RETURN row;
+	    END;
+	$$ LANGUAGE plpgsql;
+
+	DROP TRIGGER IF EXISTS bawler_trigger_foo ON foo;
+
+	CREATE TRIGGER bawler_trigger_foo
+	    AFTER INSERT OR UPDATE OR DELETE ON foo
+	    FOR EACH ROW EXECUTE PROCEDURE bawler_trigger_fn_foo();
+
+
 
 Running pg_bawler listener
 --------------------------
