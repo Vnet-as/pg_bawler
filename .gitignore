@@ -1,3 +1,5 @@
+# sphinx buld directory
+_build
 # mk style virtualenvs
 .pg_bawler
 *.py[cod]
