@@ -106,7 +106,8 @@ class ListenerMixin:
                 pg_conn = (await self.pg_connection())
                 pg_conn.close()
                 await (await self.pg_pool()).release(pg_conn)
-                del self.pg_connection.cache_attr_name
+                # clear the cache (cache_async_def)
+                delattr(self, self.pg_connection.cache_attr_name)
             return None
         else:
             LOGGER.debug(
