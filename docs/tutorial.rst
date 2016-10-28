@@ -26,6 +26,20 @@ Now let's ensure that PostgreSQL is running and we can connect to it::
         (1 row)
 
 
+Create tutorial table::
+
+	$ cat <<EOF | docker run -i --rm --link bawler-tutorial:postgres postgres psql -h postgres -U postgres
+	CREATE TABLE foo (
+	  id serial primary key,
+	  name text,
+	  number integer,
+	  created timestamp
+	)
+	EOF
+	CREATE TABLE
+
+
+
 Trigger installation
 --------------------
 
