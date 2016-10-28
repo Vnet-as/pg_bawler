@@ -8,7 +8,7 @@ Prepare `PostgreSQL <https://www.postgresql.org/>`_ database
 ============================================================
 
 In this tutorial we will use `Docker <http://www.docker.com/>`_ for running
-funky fresh PostgreSQL instance and so that we can throw it away after we are
+funky fresh PostgreSQL instance and so that we can throw it away once we are
 done.
 
 
