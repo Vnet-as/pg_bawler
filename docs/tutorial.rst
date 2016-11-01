@@ -45,7 +45,7 @@ Trigger installation
 
 You can always write your own trigger or procedure which will either use the
 `NOTIFY <https://www.postgresql.org/docs/current/static/sql-notify.html>`_
-command or the ``pg_notify`` function to send and event to all the listeners.
+command or the ``pg_notify`` function to send an event to all the listeners.
 
 Or you can generate one by using ``pg_bawler.gen_sql``::
 
