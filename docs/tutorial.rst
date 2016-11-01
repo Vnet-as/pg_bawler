@@ -28,15 +28,15 @@ Now let's ensure that PostgreSQL is running and we can connect to it::
 
 Create tutorial table ``foo``::
 
-	$ cat <<EOF | docker run -i --rm --link bawler-tutorial:postgres postgres psql -h postgres -U postgres
-	CREATE TABLE foo (
-	  id serial primary key,
-	  name text,
-	  number integer,
-	  created timestamp
-	)
-	EOF
-	CREATE TABLE
+        $ cat <<EOF | docker run -i --rm --link bawler-tutorial:postgres postgres psql -h postgres -U postgres
+        CREATE TABLE foo (
+          id serial primary key,
+          name text,
+          number integer,
+          created timestamp
+        )
+        EOF
+        CREATE TABLE
 
 
 
@@ -47,31 +47,33 @@ You can always write your own trigger or procedure which will either use the
 `NOTIFY <https://www.postgresql.org/docs/current/static/sql-notify.html>`_
 command or the ``pg_notify`` function to send and event to all the listeners.
 
-``pg_bawler.gen_sql``
+Or you can generate one by using ``pg_bawler.gen_sql``::
 
-::
+        $ python -m pg_bawler.gen_sql foo
 
-	$ python -m pg_bawler.gen_sql foo
-	CREATE OR REPLACE FUNCTION bawler_trigger_fn_foo() RETURNS TRIGGER AS $$
-	    DECLARE
-		row RECORD;
-	    BEGIN
-		IF (TG_OP = 'DELETE')
-		THEN
-			row := OLD;
-		ELSE
-			row := NEW;
-		END IF;
-		PERFORM pg_notify('foo', TG_OP || ' ' || to_json(row)::text);
-		RETURN row;
-	    END;
-	$$ LANGUAGE plpgsql;
 
-	DROP TRIGGER IF EXISTS bawler_trigger_foo ON foo;
+This command will generate function and trigger code like::
 
-	CREATE TRIGGER bawler_trigger_foo
-	    AFTER INSERT OR UPDATE OR DELETE ON foo
-	    FOR EACH ROW EXECUTE PROCEDURE bawler_trigger_fn_foo();
+        CREATE OR REPLACE FUNCTION bawler_trigger_fn_foo() RETURNS TRIGGER AS $$
+            DECLARE
+                row RECORD;
+            BEGIN
+                IF (TG_OP = 'DELETE')
+                THEN
+                        row := OLD;
+                ELSE
+                        row := NEW;
+                END IF;
+                PERFORM pg_notify('foo', TG_OP || ' ' || to_json(row)::text);
+                RETURN row;
+            END;
+        $$ LANGUAGE plpgsql;
+
+        DROP TRIGGER IF EXISTS bawler_trigger_foo ON foo;
+
+        CREATE TRIGGER bawler_trigger_foo
+            AFTER INSERT OR UPDATE OR DELETE ON foo
+            FOR EACH ROW EXECUTE PROCEDURE bawler_trigger_fn_foo();
 
 
 
