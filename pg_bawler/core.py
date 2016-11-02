@@ -49,6 +49,19 @@ class BawlerBase:
     async def pg_connection(self):
         return await (await self.pg_pool()).acquire()
 
+    async def drop_connection(self):
+        '''
+        Drops current connection
+
+        Next call to the ``self.pg_connection`` will acquire new connection
+        from pool. Use this method to drop dead connections on server restart.
+        '''
+        pg_conn = (await self.pg_connection())
+        pg_conn.close()
+        await (await self.pg_pool()).release(pg_conn)
+        # clear cached connection property (cache_async_def)
+        delattr(self, self.pg_connection.cache_attr_name)
+
 
 class SenderMixin:
 
@@ -69,8 +82,9 @@ class ListenerMixin:
     listen_timeout = None
     _stopped = False
 
-    def stop(self):
-        # TODO: Politely close all opened connections.
+    async def stop(self):
+        # TODO: Politely close opened connection
+        await self.drop_connection()
         self._stopped = True
 
     @property
@@ -99,15 +113,11 @@ class ListenerMixin:
                 await pg_cursor.execute('SELECT 1')
                 is_healthy = await pg_cursor.fetchone() == (1, )
             if is_healthy:
-                LOGGER.debug('Connection looks to be OK.')
+                LOGGER.debug('Connection seems to be OK.')
             else:
                 LOGGER.error('Failed postgres connection!')
                 LOGGER.info('Dropping this connection and creating new one.')
-                pg_conn = (await self.pg_connection())
-                pg_conn.close()
-                await (await self.pg_pool()).release(pg_conn)
-                # clear the cache (cache_async_def)
-                delattr(self, self.pg_connection.cache_attr_name)
+                await self.drop_connection()
             return None
         else:
             LOGGER.debug(
