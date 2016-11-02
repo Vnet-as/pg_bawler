@@ -81,7 +81,6 @@ To install this trigger just pipe generated code to ``psql``::
         $ python -m pg_bawler.gen_sql foo | docker run -i --rm --link bawler-tutorial:postgres postgres psql -h postgres -U postgres
 
 
-
 Running pg_bawler listener
 --------------------------
 
@@ -99,6 +98,33 @@ Or newer syntax
 
         $ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' bawler-tutorial
         172.18.0.2
+
+
+Let's start ``pg_bawler.listener`` in one terminal and insert a row into the ``foo`` table from another terminal.
+
+To start ``pg_bawler.listener`` we'll use IP address of ``bawler-tutorial``
+container and default PostgreSQL username and database name.
+
+
+::
+
+        $ python -m pg_bawler.listener --dsn "dbname=postgres user=postgres host=172.18.0.2" foo
+
+
+
+Now to insert row to table ``foo`` execute::
+
+        $ cat <<EOF | docker run -i --rm --link bawler-tutorial:postgres postgres psql -h postgres -U postgres
+        INSERT INTO foo (name, number, created) values ('Michal Kuffa', '1', '2016-10-01'::timestamp);
+        EOF
+
+
+If everything's working you should see in ``pg_bawler.listener``'s terminal log something like::
+
+        [2016-11-02 21:52:42,266][pg_bawler.listener][INFO]: Received notification #1 pid 2964 from channel foo: INSERT {"id":3,"name":"Michal","number":1,"created":"2016-10-01T00:00:00"}
+
+
+This is behaviour of default handler, just log the notification.
 
 
 * More information about `PostgreSQL docker image <https://hub.docker.com/_/postgres/>`_
