@@ -8,7 +8,7 @@ want to be notified on changes.
 
     $ python -m pg_bawler.gen_sql mytable
 
-And pg_bawler will generate plpgsql functin code and
+And pg_bawler will generate plpgsql function code and
 create trigger statements. Thus installation should be
 easy as:
 
