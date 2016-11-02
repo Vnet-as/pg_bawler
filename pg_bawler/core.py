@@ -160,8 +160,6 @@ class ListenerMixin:
     async def listen(self):
         while not self.is_stopped:
             notification = await self.get_notification()
-            # TODO: If Queue.get() for notifications timed out,
-            #       we may want to reset connection or just continue
-            if notification:
+            if notification is not None:
                 for handler in getattr(self, 'handlers', []):
                     self.loop.create_task(handler(notification))
