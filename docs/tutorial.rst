@@ -76,6 +76,11 @@ This command will generate function and trigger code like::
             FOR EACH ROW EXECUTE PROCEDURE bawler_trigger_fn_foo();
 
 
+To install this trigger just pipe generated code to ``psql``::
+
+        $ python -m pg_bawler.gen_sql foo | docker run -i --rm --link bawler-tutorial:postgres postgres psql -h postgres -U postgres
+
+
 
 Running pg_bawler listener
 --------------------------
