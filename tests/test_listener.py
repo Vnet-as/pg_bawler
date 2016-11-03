@@ -4,6 +4,7 @@ import os
 import pytest
 
 import pg_bawler.core
+import pg_bawler.listener
 
 
 def test_register_handlers():
