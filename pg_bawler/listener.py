@@ -38,6 +38,11 @@ def get_default_cli_args_parser():
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument(
+        '--log-level',
+        metavar='LOG_LEVEL',
+        default='info',
+        help='Log level. One of: fatal, cirtical, error, warning, info, debug')
+    parser.add_argument(
         '--dsn',
         metavar='DSN',
         help='Connection string. e.g. `dbname=test user=postgres`')
@@ -69,11 +74,14 @@ class NotificationListener(
     pass
 
 
-def main():
-    args = get_default_cli_args_parser().parse_args()
-    logging.basicConfig(
-        format='[%(asctime)s][%(name)s][%(levelname)s]: %(message)s',
-        level=logging.DEBUG)
+def main(*argv):
+    args = get_default_cli_args_parser(argv or sys.argv[1:]).parse_args()
+    try:
+        logging.basicConfig(
+            format='[%(asctime)s][%(name)s][%(levelname)s]: %(message)s',
+            level=args.log_level)
+    except TypeError:
+        sys.exit('Worng log level. --help for more info.')
     LOGGER.info('Starting pg_bawler listener for channel: %s', args.channel)
     loop = asyncio.get_event_loop()
     listener = NotificationListener(connection_params={'dsn': args.dsn})
