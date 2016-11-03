@@ -110,8 +110,8 @@ def create_context_from_args(args):
     }
 
 
-def main():
-    args = get_default_cli_args_parser().parse_args()
+def main(*argv):
+    args = get_default_cli_args_parser().parse_args(argv or sys.argv[1:])
     tpl_loader = get_default_tpl_loader()
     context = create_context_from_args(args)
 
