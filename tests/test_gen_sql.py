@@ -1,10 +1,19 @@
 #!/usr/bin/env python
+import sys
+from io import StringIO
+
+from pg_bawler import gen_sql
 
 
-class TestGenSql:
+def test_simple_main(monkeypatch):
+    stdout = StringIO()
+    monkeypatch.setattr(sys, 'stdout', stdout)
 
-    def test_gen_drop_statement(self):
-        pass
+    class Args:
+        tablename = 'foo'
 
-    def test_create_statement(self):
-        pass
+    gen_sql.main(*[Args.tablename])
+    sql = stdout.getvalue()
+
+    assert gen_sql.TRIGGER_FN_FMT.format(args=Args) in sql
+    assert gen_sql.TRIGGER_FN_FMT.format(args=Args) in sql
