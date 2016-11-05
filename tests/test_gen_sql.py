@@ -17,3 +17,11 @@ def test_simple_main(monkeypatch):
 
     assert gen_sql.TRIGGER_FN_FMT.format(args=Args) in sql
     assert gen_sql.TRIGGER_FN_FMT.format(args=Args) in sql
+
+
+def test_no_drop(monkeypatch):
+    stdout = StringIO()
+    monkeypatch.setattr(sys, 'stdout', stdout)
+    gen_sql.main('--no-drop', 'foo')
+    sql = stdout.getvalue()
+    assert 'DROP' not in sql
