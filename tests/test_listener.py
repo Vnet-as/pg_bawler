@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import argparse
 import os
 
 import pytest
@@ -13,6 +14,17 @@ def test_register_handlers():
     assert listener.register_handler(True) == 1
     assert listener.unregister_handler(None)
     assert not listener.unregister_handler(None)
+
+
+def test_default_cli_parser():
+    parser = pg_bawler.listener.get_default_cli_args_parser()
+    assert isinstance(parser, argparse.ArgumentParser)
+
+
+def test_resolve_handler():
+    handler = pg_bawler.listener.resolve_handler(
+        'pg_bawler.listener:default_handler')
+    assert handler is pg_bawler.listener.default_handler
 
 
 @pytest.mark.asyncio
