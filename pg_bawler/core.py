@@ -83,7 +83,6 @@ class ListenerMixin:
     _stopped = False
 
     async def stop(self):
-        # TODO: Politely close opened connection
         await self.drop_connection()
         self._stopped = True
 
