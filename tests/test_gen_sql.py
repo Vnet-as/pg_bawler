@@ -25,3 +25,11 @@ def test_no_drop(monkeypatch):
     gen_sql.main('--no-drop', 'foo')
     sql = stdout.getvalue()
     assert 'DROP' not in sql
+
+
+def test_no_create(monkeypatch):
+    stdout = StringIO()
+    monkeypatch.setattr(sys, 'stdout', stdout)
+    gen_sql.main('--no-create', 'foo')
+    sql = stdout.getvalue()
+    assert 'CREATE TRIGGER' not in sql
