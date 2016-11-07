@@ -80,6 +80,7 @@ class ListenerMixin:
 
     CHANNEL_REGISTRATION_TPL = 'LISTEN {channel}'
     listen_timeout = None
+    stop_on_timeout = False
     _stopped = False
 
     async def stop(self):
@@ -90,12 +91,20 @@ class ListenerMixin:
     def is_stopped(self):
         return self._stopped
 
+    @property
+    def registered_channels(self):
+        prop_name = '_registered_channels'
+        if not hasattr(self, prop_name):
+            setattr(self, prop_name, {})
+        return getattr(self, prop_name)
+
     def _get_listen_statement(self, channel):
         return self.CHANNEL_REGISTRATION_TPL.format(channel=channel)
 
     async def register_channel(self, channel):
         async with (await self.pg_connection()).cursor() as cursor:
             await cursor.execute(self._get_listen_statement(channel))
+        self.registered_channels.setdefault(channel, [])
 
     async def get_notification(self):
         try:
@@ -106,17 +115,21 @@ class ListenerMixin:
             LOGGER.debug(
                 'Timed out. No notification for last %s seconds.',
                 self.listen_timeout)
-            LOGGER.debug(
-                'Checking health of connection.')
-            async with (await self.pg_connection()).cursor() as pg_cursor:
-                await pg_cursor.execute('SELECT 1')
-                is_healthy = await pg_cursor.fetchone() == (1, )
-            if is_healthy:
-                LOGGER.debug('Connection seems to be OK.')
+            if self.stop_on_timeout:
+                await self.stop()
             else:
-                LOGGER.error('Failed postgres connection!')
-                LOGGER.info('Dropping this connection and creating new one.')
-                await self.drop_connection()
+                LOGGER.debug(
+                    'Checking health of connection.')
+                async with (await self.pg_connection()).cursor() as pg_cursor:
+                    await pg_cursor.execute('SELECT 1')
+                    is_healthy = await pg_cursor.fetchone() == (1, )
+                if is_healthy:
+                    LOGGER.debug('Connection seems to be OK.')
+                else:
+                    LOGGER.error('Failed postgres connection!')
+                    LOGGER.info(
+                        'Dropping this connection and creating new one.')
+                    await self.drop_connection()
             return None
         else:
             LOGGER.debug(
@@ -124,41 +137,42 @@ class ListenerMixin:
                 notification.channel, notification.payload)
             return notification
 
-    def register_handler(self, handler):
+    def register_handler(self, channel, handler):
         '''
-        Registers ``handler`` with this listener and returns handler's index in
-        the list of handlers.
-        '''
-        if not hasattr(self, 'handlers'):
-            self.handlers = [handler]
-        else:
-            self.handlers.append(handler)
-        return len(self.handlers) - 1
+        Registers ``handler`` with given ``channel``
 
-    def unregister_handler(self, handler):
+        :param channel: Name of channel
+        :param handler: Coroutine that will handle notifications from
+            ``channel``
+        :returns: None
         '''
-        Unregisters ``handler`` by removing it from handlers list.
-
-        Returns ``True`` if handler was successfully removed, ``False``
-        otherwise.
-        '''
-        # TODO: Should we raise exception here?
-        #       Like [].remove, raises ValueError
-        try:
-            self.handlers.remove(handler)
-        except AttributeError:
-            LOGGER.debug('No handlers registered yet.')
-            return False
-        except ValueError:
-            LOGGER.debug('Handler is not registered.')
-            return False
+        if channel in self.registered_channels:
+            self.registered_channels.append(handler)
         else:
-            LOGGER.debug('Handler %s unregistered.')
-            return True
+            self.registered_channels[channel] = [handler]
+
+    def unregister_handler(self, channel, handler):
+        '''
+        Unregisters ``handler`` by removing it from handlers list of given
+        ``channel``.
+
+        :param channel: Name of channel
+        :param handler: Coroutine to unregister from ``channel``
+        :returns: None
+        '''
+        if channel in self.registered_channels:
+            try:
+                self.registered_channels[channel].remove(handler)
+            except ValueError:
+                LOGGER.debug('Handler is not registered.')
+            else:
+                LOGGER.debug('Handler %s unregistered.')
+        return None
 
     async def listen(self):
         while not self.is_stopped:
             notification = await self.get_notification()
             if notification is not None:
-                for handler in getattr(self, 'handlers', []):
-                    self.loop.create_task(handler(notification))
+                handlers = self.registered_channels[notification.channel]
+                for handler in handlers:
+                    self.loop.create_task(handler(notification, self))
