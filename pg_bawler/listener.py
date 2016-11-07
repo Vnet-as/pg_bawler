@@ -24,7 +24,7 @@ class DefaultHandler:
     def __init__(self):
         self.count = 0
 
-    async def handle_notification(self, notification):
+    async def handle_notification(self, notification, listener):
         self.count += 1
         notification_number = self.count
         LOGGER.info(
@@ -82,6 +82,23 @@ class NotificationListener(
     pass
 
 
+def _main(
+    *,
+    connection_params,
+    channel,
+    handler=default_handler,
+    timeout=5,
+    listener_class=NotificationListener,
+    loop=None
+):
+    loop = loop or asyncio.get_event_loop()
+    listener = NotificationListener(connection_params=connection_params)
+    listener.listen_timeout = timeout
+    listener.register_handler(channel, handler)
+    loop.run_until_complete(listener.register_channel(channel))
+    loop.run_until_complete(listener.listen())
+
+
 def main(*argv):
     args = get_default_cli_args_parser().parse_args(argv or sys.argv[1:])
     try:
@@ -91,12 +108,11 @@ def main(*argv):
     except TypeError:
         sys.exit('Worng log level. --help for more info.')
     LOGGER.info('Starting pg_bawler listener for channel: %s', args.channel)
-    loop = asyncio.get_event_loop()
-    listener = NotificationListener(connection_params={'dsn': args.dsn})
-    listener.listen_timeout = args.timeout
-    listener.register_handler(resolve_handler(args.handler))
-    loop.run_until_complete(listener.register_channel(args.channel))
-    loop.run_until_complete(listener.listen())
+    _main(
+        connection_params={'dsn': args.dsn},
+        channel=args.channel,
+        handler=resolve_handler(args.handler),
+        timeout=args.timeout)
 
 
 if __name__ == '__main__':
