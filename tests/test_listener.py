@@ -32,10 +32,12 @@ connection_params = dict(
 
 def test_register_handlers():
     listener = pg_bawler.core.ListenerMixin()
-    assert listener.register_handler(None) == 0
-    assert listener.register_handler(True) == 1
-    assert listener.unregister_handler(None)
-    assert not listener.unregister_handler(None)
+    assert listener.register_handler('channel', 'handler') is None
+    assert listener.registered_channels['channel'] == ['handler']
+
+    listener.unregister_handler('channel', 'handler')
+    assert listener.registered_channels['channel'] == []
+    listener.unregister_handler('channel', 'handler')
 
 
 def test_default_cli_parser():
@@ -51,12 +53,6 @@ def test_resolve_handler():
 
 @pytest.mark.asyncio
 async def test_simple_listen():
-    connection_params = dict(
-        dbname=os.environ.get('POSTGRES_DB', 'bawler_test'),
-        user=os.environ.get('POSTGRES_USER', 'postgres'),
-        host=os.environ.get('POSTGRES_HOST'),
-        password=os.environ.get('POSTGRES_PASSWORD', ''))
-
     nl = NotificationListener(connection_params=connection_params)
     ns = NotificationSender(connection_params=connection_params)
 
@@ -77,3 +73,53 @@ async def test_get_notification_timeout():
     await nl.register_channel(channel='pg_bawler_test')
     notification = await nl.get_notification()
     assert notification is None
+
+
+@pytest.mark.asyncio
+async def test_stop_on_timeout():
+    nl = NotificationListener(connection_params=connection_params)
+    nl.listen_timeout = 0
+    nl.stop_on_timeout = True
+    await nl.register_channel(channel='pg_bawler_test')
+    notification = await nl.get_notification()
+    assert notification is None
+    assert nl.is_stopped
+
+
+@pytest.mark.asyncio
+async def test_stop_listener():
+    nl = NotificationListener(connection_params=connection_params)
+    await nl.stop()
+    await nl.listen()
+
+
+# @pytest.mark.asyncio
+# async def test_listener_main():
+#     ns = NotificationSender(connection_params=connection_params)
+#     payload = 'pg_bawler_test'
+#
+#     async def handler(notification, listener):
+#         assert notification.payload == payload
+#         listener.stop()
+#
+#     pg_bawler.listener._main(
+#         connection_params=connection_params,
+#         channel='pg_bawler_test',
+#         handler=handler)
+
+
+# @pytest.mark.asyncio
+# async def test_listener_main(event_loop):
+#     ns = NotificationSender(connection_params=connection_params)
+#     nl = NotificationListener(connection_params=connection_params)
+#     payload = 'pg_bawler_test'
+#
+#     async def handler(notification, listener):
+#         assert notification.payload == payload
+#         await listener.stop()
+#
+#     nl.timeout = 5
+#     nl.register_handler('channel', handler)
+#     await nl.register_channel('channel')
+#     event_loop.create_task(ns.send(channel='channel', payload=payload))
+#     await nl.listen()
