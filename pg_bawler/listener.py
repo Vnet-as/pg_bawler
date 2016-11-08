@@ -88,12 +88,16 @@ def _main(
     channel,
     handler=default_handler,
     timeout=5,
+    stop_on_timeout=False,
     listener_class=NotificationListener,
     loop=None
 ):
     loop = loop or asyncio.get_event_loop()
-    listener = NotificationListener(connection_params=connection_params)
+    listener = NotificationListener(
+        connection_params=connection_params,
+        loop=loop)
     listener.listen_timeout = timeout
+    listener.stop_on_timeout = stop_on_timeout
     listener.register_handler(channel, handler)
     loop.run_until_complete(listener.register_channel(channel))
     loop.run_until_complete(listener.listen())
