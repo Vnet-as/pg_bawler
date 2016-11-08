@@ -43,7 +43,8 @@ class BawlerBase:
 
     @cache_async_def
     async def pg_pool(self):
-        return await aiopg.create_pool(**self.connection_params)
+        return await aiopg.create_pool(
+            loop=self.loop, **self.connection_params)
 
     @cache_async_def
     async def pg_connection(self):
@@ -116,7 +117,9 @@ class ListenerMixin:
         try:
             notification = await asyncio.wait_for(
                 (await self.pg_connection()).notifies.get(),
-                self.listen_timeout)
+                self.listen_timeout,
+                loop=self.loop,
+            )
         except asyncio.TimeoutError:
             LOGGER.debug(
                 'Timed out. No notification for last %s seconds.',
