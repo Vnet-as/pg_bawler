@@ -102,6 +102,12 @@ class ListenerMixin:
         return self.CHANNEL_REGISTRATION_TPL.format(channel=channel)
 
     async def register_channel(self, channel):
+        '''
+        Register ``channel`` by executing the `LISTEN` statement.
+
+        :param channel: Name of the channel
+        :returns: None
+        '''
         async with (await self.pg_connection()).cursor() as cursor:
             await cursor.execute(self._get_listen_statement(channel))
         self.registered_channels.setdefault(channel, [])
