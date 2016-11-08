@@ -84,15 +84,14 @@ class NotificationListener(
 
 def _main(
     *,
+    loop,
     connection_params,
     channel,
     handler=default_handler,
     timeout=5,
     stop_on_timeout=False,
-    listener_class=NotificationListener,
-    loop=None
+    listener_class=NotificationListener
 ):
-    loop = loop or asyncio.get_event_loop()
     listener = NotificationListener(
         connection_params=connection_params,
         loop=loop)
@@ -112,11 +111,14 @@ def main(*argv):
     except TypeError:
         sys.exit('Worng log level. --help for more info.')
     LOGGER.info('Starting pg_bawler listener for channel: %s', args.channel)
+    loop = asyncio.get_event_loop()
     _main(
+        loop=loop,
         connection_params={'dsn': args.dsn},
         channel=args.channel,
         handler=resolve_handler(args.handler),
         timeout=args.timeout)
+    loop.close()
 
 
 if __name__ == '__main__':
