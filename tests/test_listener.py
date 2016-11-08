@@ -94,19 +94,22 @@ async def test_stop_listener(connection_params):
     await nl.listen()
 
 
-# @pytest.mark.asyncio
-# async def test_listener_main():
-#     ns = NotificationSender(connection_params=connection_params)
-#     payload = 'pg_bawler_test'
-#
-#     async def handler(notification, listener):
-#         assert notification.payload == payload
-#         listener.stop()
-#
-#     pg_bawler.listener._main(
-#         connection_params=connection_params,
-#         channel='pg_bawler_test',
-#         handler=handler)
+def test_listener_main(connection_params, event_loop):
+    # ns = NotificationSender(connection_params=connection_params)
+    payload = 'pg_bawler_test'
+
+    async def handler(notification, listener):
+        assert notification.payload == payload
+        listener.stop()
+
+    pg_bawler.listener._main(
+        connection_params=connection_params,
+        channel='pg_bawler_test',
+        handler=handler,
+        timeout=1,
+        stop_on_timeout=True,
+        loop=event_loop,
+    )
 
 
 # @pytest.mark.asyncio
