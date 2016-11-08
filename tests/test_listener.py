@@ -22,12 +22,13 @@ class NotificationSender(
     pass
 
 
-# TODO: Maybe as a pytest fixtures?
-connection_params = dict(
-    dbname=os.environ.get('POSTGRES_DB', 'bawler_test'),
-    user=os.environ.get('POSTGRES_USER', 'postgres'),
-    host=os.environ.get('POSTGRES_HOST'),
-    password=os.environ.get('POSTGRES_PASSWORD', ''))
+@pytest.fixture
+def connection_params():
+    return dict(
+        dbname=os.environ.get('POSTGRES_DB', 'bawler_test'),
+        user=os.environ.get('POSTGRES_USER', 'postgres'),
+        host=os.environ.get('POSTGRES_HOST'),
+        password=os.environ.get('POSTGRES_PASSWORD', ''))
 
 
 def test_register_handlers():
@@ -52,7 +53,7 @@ def test_resolve_handler():
 
 
 @pytest.mark.asyncio
-async def test_simple_listen():
+async def test_simple_listen(connection_params):
     nl = NotificationListener(connection_params=connection_params)
     ns = NotificationSender(connection_params=connection_params)
 
@@ -67,7 +68,7 @@ async def test_simple_listen():
 
 
 @pytest.mark.asyncio
-async def test_get_notification_timeout():
+async def test_get_notification_timeout(connection_params):
     nl = NotificationListener(connection_params=connection_params)
     nl.listen_timeout = 0
     await nl.register_channel(channel='pg_bawler_test')
@@ -76,7 +77,7 @@ async def test_get_notification_timeout():
 
 
 @pytest.mark.asyncio
-async def test_stop_on_timeout():
+async def test_stop_on_timeout(connection_params):
     nl = NotificationListener(connection_params=connection_params)
     nl.listen_timeout = 0
     nl.stop_on_timeout = True
@@ -87,7 +88,7 @@ async def test_stop_on_timeout():
 
 
 @pytest.mark.asyncio
-async def test_stop_listener():
+async def test_stop_listener(connection_params):
     nl = NotificationListener(connection_params=connection_params)
     await nl.stop()
     await nl.listen()
