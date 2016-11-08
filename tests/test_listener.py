@@ -106,7 +106,7 @@ def test_listener_main(connection_params, event_loop):
         connection_params=connection_params,
         channel='pg_bawler_test',
         handler=handler,
-        timeout=1,
+        timeout=0,
         stop_on_timeout=True,
         loop=event_loop,
     )
