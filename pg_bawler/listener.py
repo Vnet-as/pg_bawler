@@ -38,6 +38,11 @@ def get_default_cli_args_parser():
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument(
+        '--stop-on-timeout',
+        action='store_true',
+        default=False,
+        help='Stop listener when timeout passes.')
+    parser.add_argument(
         '--log-level',
         metavar='LOG_LEVEL',
         default='INFO',
@@ -99,25 +104,28 @@ def _main(
     listener.stop_on_timeout = stop_on_timeout
     listener.register_handler(channel, handler)
     loop.run_until_complete(listener.register_channel(channel))
-    loop.run_until_complete(listener.listen())
+    return listener, loop.create_task(listener.listen())
 
 
-def main(*argv):
+def main(*argv, loop=None):
     args = get_default_cli_args_parser().parse_args(argv or sys.argv[1:])
     try:
         logging.basicConfig(
             format='[%(asctime)s][%(name)s][%(levelname)s]: %(message)s',
             level=args.log_level.upper())
-    except TypeError:
+    except (TypeError, ValueError):
         sys.exit('Worng log level. --help for more info.')
     LOGGER.info('Starting pg_bawler listener for channel: %s', args.channel)
-    loop = asyncio.get_event_loop()
-    _main(
+    loop = loop or asyncio.get_event_loop()
+    _, listen_task = _main(
         loop=loop,
         connection_params={'dsn': args.dsn},
         channel=args.channel,
         handler=resolve_handler(args.handler),
+        stop_on_timeout=args.stop_on_timeout,
         timeout=args.timeout)
+    listen_task.add_done_callback(lambda fut: loop.stop())
+    loop.run_forever()
     loop.close()
 
 
