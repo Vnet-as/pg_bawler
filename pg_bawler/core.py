@@ -156,7 +156,7 @@ class ListenerMixin:
         :returns: None
         '''
         if channel in self.registered_channels:
-            self.registered_channels.append(handler)
+            self.registered_channels[channel].append(handler)
         else:
             self.registered_channels[channel] = [handler]
 

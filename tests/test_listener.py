@@ -48,6 +48,9 @@ def test_register_handlers():
     assert listener.registered_channels['channel'] == []
     listener.unregister_handler('channel', 'handler')
 
+    listener.register_handler('channel', 'handler')
+    assert listener.registered_channels['channel'] == ['handler']
+
 
 def test_default_cli_parser():
     parser = pg_bawler.listener.get_default_cli_args_parser()
