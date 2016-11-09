@@ -11,6 +11,7 @@ import asyncio
 import logging
 
 import aiopg
+import psycopg2
 
 LOGGER = logging.getLogger(name='pg_bawler.core')
 
@@ -82,6 +83,7 @@ class ListenerMixin:
     CHANNEL_REGISTRATION_TPL = 'LISTEN {channel}'
     listen_timeout = None
     stop_on_timeout = False
+    try_to_reconnect = True
     _stopped = False
 
     async def stop(self):
@@ -113,6 +115,32 @@ class ListenerMixin:
             await cursor.execute(self._get_listen_statement(channel))
         self.registered_channels.setdefault(channel, [])
 
+    async def timeout_callback(self):
+        LOGGER.debug(
+            'Timed out. No notification for last %s seconds.',
+            self.listen_timeout)
+        if self.stop_on_timeout:
+            await self.stop()
+        else:
+            LOGGER.debug(
+                'Checking health of connection.')
+            try:
+                async with (await self.pg_connection()).cursor() as pg_cursor:
+                    await pg_cursor.execute('SELECT 1')
+                    await pg_cursor.fetchone() == (1, )
+            except psycopg2.OperationalError:
+                LOGGER.error('Failed postgres connection!')
+                if self.try_to_reconnect:
+                    LOGGER.info(
+                        'Dropping this connection and creating new one.')
+                    await self.drop_connection()
+                    for channel in self.registered_channels:
+                        await self.register_channel(channel)
+                else:
+                    await self.stop()
+            else:
+                LOGGER.debug('Connection seems to be OK.')
+
     async def get_notification(self):
         try:
             notification = await asyncio.wait_for(
@@ -121,24 +149,7 @@ class ListenerMixin:
                 loop=self.loop,
             )
         except asyncio.TimeoutError:
-            LOGGER.debug(
-                'Timed out. No notification for last %s seconds.',
-                self.listen_timeout)
-            if self.stop_on_timeout:
-                await self.stop()
-            else:
-                LOGGER.debug(
-                    'Checking health of connection.')
-                async with (await self.pg_connection()).cursor() as pg_cursor:
-                    await pg_cursor.execute('SELECT 1')
-                    is_healthy = await pg_cursor.fetchone() == (1, )
-                if is_healthy:
-                    LOGGER.debug('Connection seems to be OK.')
-                else:
-                    LOGGER.error('Failed postgres connection!')
-                    LOGGER.info(
-                        'Dropping this connection and creating new one.')
-                    await self.drop_connection()
+            await self.timeout_callback()
             return None
         else:
             LOGGER.debug(
