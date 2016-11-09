@@ -31,6 +31,14 @@ def connection_params():
         password=os.environ.get('POSTGRES_PASSWORD', ''))
 
 
+@pytest.fixture
+def connection_dsn(connection_params):
+    return ' '.join([
+        '{}={}'.format(*kv)
+        for kv in connection_params.items() if kv[1]
+    ])
+
+
 def test_register_handlers():
     listener = pg_bawler.core.ListenerMixin()
     assert listener.register_handler('channel', 'handler') is None
@@ -95,35 +103,42 @@ async def test_stop_listener(connection_params):
 
 
 def test_listener_main(connection_params, event_loop):
-    # ns = NotificationSender(connection_params=connection_params)
+    ns = NotificationSender(
+        connection_params=connection_params,
+        loop=event_loop,
+    )
     payload = 'pg_bawler_test'
 
     async def handler(notification, listener):
-        assert notification.payload == payload
-        listener.stop()
+        await pg_bawler.listener.default_handler(notification, listener)
+        await ns.drop_connection()
+        await listener.stop()
 
-    pg_bawler.listener._main(
+    channel = 'pg_bawler_test'
+    listener, listen_task = pg_bawler.listener._main(
         connection_params=connection_params,
-        channel='pg_bawler_test',
+        channel=channel,
         handler=handler,
         timeout=0,
-        stop_on_timeout=True,
+        stop_on_timeout=False,
         loop=event_loop,
     )
 
+    event_loop.run_until_complete(ns.send(channel=channel, payload=payload))
+    listen_task.add_done_callback(lambda fut: event_loop.stop())
+    event_loop.run_forever()
+    assert not listen_task.exception()
 
-# @pytest.mark.asyncio
-# async def test_listener_main(event_loop):
-#     ns = NotificationSender(connection_params=connection_params)
-#     nl = NotificationListener(connection_params=connection_params)
-#     payload = 'pg_bawler_test'
-#
-#     async def handler(notification, listener):
-#         assert notification.payload == payload
-#         await listener.stop()
-#
-#     nl.timeout = 5
-#     nl.register_handler('channel', handler)
-#     await nl.register_channel('channel')
-#     event_loop.create_task(ns.send(channel='channel', payload=payload))
-#     await nl.listen()
+
+def test_main_wrong_debug_level(connection_dsn, event_loop):
+    with pytest.raises(SystemExit):
+        pg_bawler.listener.main(
+            '--log-level', 'non-existent',
+            '--stop-on-timeout', '--timeout', '0', '--dsn',
+            connection_dsn, 'channel', loop=event_loop)
+
+
+def test_listener_entrypoint(connection_dsn, event_loop):
+    pg_bawler.listener.main(
+        '--stop-on-timeout', '--timeout', '0', '--dsn',
+        connection_dsn, 'channel', loop=event_loop)
