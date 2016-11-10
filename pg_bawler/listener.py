@@ -125,8 +125,12 @@ def main(*argv, loop=None):
         stop_on_timeout=args.stop_on_timeout,
         timeout=args.timeout)
     listen_task.add_done_callback(lambda fut: loop.stop())
-    loop.run_forever()
-    loop.close()
+    try:
+        loop.run_forever()
+    finally:
+        if loop.is_running():
+            loop.stop()
+        loop.close()
 
 
 if __name__ == '__main__':
