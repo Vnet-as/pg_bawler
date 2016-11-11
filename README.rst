@@ -9,7 +9,7 @@ pg_bawler
    :target: https://codecov.io/gh/Vnet-as/pg_bawler
 
 
-Notify/listen python helpers for postgresql.
+Notify/listen python helpers for `PostgreSQL <https://www.postgresql.org/>`_.
 
 
 Usage
