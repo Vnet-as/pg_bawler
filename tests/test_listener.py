@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import argparse
-import os
 
 import pytest
 
@@ -23,12 +22,8 @@ class NotificationSender(
 
 
 @pytest.fixture
-def connection_params():
-    return dict(
-        dbname=os.environ.get('POSTGRES_DB', 'bawler_test'),
-        user=os.environ.get('POSTGRES_USER', 'postgres'),
-        host=os.environ.get('POSTGRES_HOST'),
-        password=os.environ.get('POSTGRES_PASSWORD', ''))
+def connection_params(pg_server):
+    return pg_server['pg_params']
 
 
 @pytest.fixture
@@ -77,6 +72,9 @@ async def test_simple_listen(connection_params):
     assert notification.channel == channel_name
     assert notification.payload == payload
 
+    await nl.drop_connection()
+    await ns.drop_connection()
+
 
 @pytest.mark.asyncio
 async def test_get_notification_timeout(connection_params):
@@ -85,6 +83,7 @@ async def test_get_notification_timeout(connection_params):
     await nl.register_channel(channel='pg_bawler_test')
     notification = await nl.get_notification()
     assert notification is None
+    await nl.drop_connection()
 
 
 @pytest.mark.asyncio
@@ -131,6 +130,7 @@ def test_listener_main(connection_params, event_loop):
     listen_task.add_done_callback(lambda fut: event_loop.stop())
     event_loop.run_forever()
     assert not listen_task.exception()
+    event_loop.run_until_complete(listener.drop_connection())
 
 
 def test_main_wrong_debug_level(connection_dsn, event_loop):
