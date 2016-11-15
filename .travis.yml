@@ -2,10 +2,7 @@ sudo: required
 language: python
 
 services:
-  - postgresql
-
-before_script:
-  - psql -c 'create database bawler_test;' -U postgres
+  - docker
 
 python:
   - "3.5"
@@ -18,7 +15,7 @@ install:
   - pip install -r test-requirements.txt
   - pip install codecov
 
-script: python -m pytest --cov=pg_bawler --cov-report=term-missing tests
+script: python -m pytest --verbose --cov=pg_bawler --cov-report=term-missing tests
 
 after_success:
   - codecov
