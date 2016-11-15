@@ -4,6 +4,12 @@ language: python
 services:
   - docker
 
+env:
+  matrix:
+    - PGTAG=9.6
+    - PGTAG=9.5
+    - PGTAG=9.4
+
 python:
   - "3.5"
   - "3.5-dev"

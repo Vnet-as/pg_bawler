@@ -1,9 +1,22 @@
 import time
 import uuid
+import os
 
 import psycopg2
 import pytest
 from docker import Client as DockerClient
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        '--pg-tag',
+        action='store',
+        default=os.environ.get('PGTAG', '9.6'))
+
+
+@pytest.fixture(scope='session')
+def pg_tag(request):
+    return request.config.getoption('--pg-tag')
 
 
 @pytest.fixture(scope='session')
@@ -17,8 +30,7 @@ def docker():
 
 
 @pytest.yield_fixture(scope='session')
-def pg_server(docker, session_id):
-    pg_tag = '9.6'
+def pg_server(docker, pg_tag, session_id):
     docker.pull('postgres:{}'.format(pg_tag))
     container = docker.create_container(
         image='postgres:{}'.format(pg_tag),
