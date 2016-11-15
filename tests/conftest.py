@@ -1,8 +1,8 @@
-
-import uuid
 import time
-import pytest
+import uuid
+
 import psycopg2
+import pytest
 from docker import Client as DockerClient
 
 
@@ -39,7 +39,7 @@ def pg_server(docker, session_id):
         try:
             conn = psycopg2.connect(**pg_params)
             cur = conn.cursor()
-            cur.execute("SELECT 1;")
+            cur.execute('SELECT 1;')
             cur.close()
             conn.close()
             break
@@ -47,7 +47,7 @@ def pg_server(docker, session_id):
             time.sleep(delay)
             delay *= 2
     else:
-        pytest.fail("Cannot start postgres server")
+        pytest.fail('Cannot start postgres server')
 
     container['host'] = host
     container['pg_params'] = pg_params
