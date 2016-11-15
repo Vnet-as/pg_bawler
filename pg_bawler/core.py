@@ -3,9 +3,12 @@
 pg_bawler.core
 ==============
 
-Base classes for LISTEN / NOTIFY.  Postgresql documentation for
-`LISTEN<https://www.postgresql.org/docs/current/static/sql-listen.html>`_ /
-`NOTIFY<https://www.postgresql.org/docs/current/static/sql-notify.html>`_.
+Base classes for LISTEN / NOTIFY.
+
+
+Postgresql documentation for
+`LISTEN <https://www.postgresql.org/docs/current/static/sql-listen.html>`_ /
+`NOTIFY <https://www.postgresql.org/docs/current/static/sql-notify.html>`_.
 '''
 import asyncio
 import logging

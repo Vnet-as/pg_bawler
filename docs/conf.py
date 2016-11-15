@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+import site
+import os
+
+site.addsitedir(os.path.abspath('..'))
+
+
 #
 # pg_bawler documentation build configuration file, created by
 # sphinx-quickstart on Fri Oct 28 22:38:14 2016.

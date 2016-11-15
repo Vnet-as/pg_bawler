@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 '''
+==================
+pg_bawler.listener
+==================
+
 Listen on given channel for notification.
 
     $ python -m pg_bawler.listener mychannel
