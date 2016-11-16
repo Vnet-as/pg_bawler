@@ -66,14 +66,14 @@ async def test_simple_listen(connection_params):
     payload = 'aaa'
     channel_name = 'pg_bawler_test'
 
-    await nl.register_channel(channel='pg_bawler_test')
-    await ns.send(channel=channel_name, payload=payload)
-    notification = await nl.get_notification()
-    assert notification.channel == channel_name
-    assert notification.payload == payload
+    async with NotificationListener(connection_params) as nl:
+        async with NotificationSender(connection_params) as ns:
 
-    await nl.drop_connection()
-    await ns.drop_connection()
+            await nl.register_channel(channel='pg_bawler_test')
+            await ns.send(channel=channel_name, payload=payload)
+            notification = await nl.get_notification()
+            assert notification.channel == channel_name
+            assert notification.payload == payload
 
 
 @pytest.mark.asyncio

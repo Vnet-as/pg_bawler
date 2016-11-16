@@ -40,7 +40,7 @@ class BawlerBase:
     Base ``pg_bawler`` class with convenience methods around ``aiopg``.
     '''
 
-    def __init__(self, *, connection_params, loop=None):
+    def __init__(self, connection_params, *, loop=None):
         self.connection_params = connection_params
         self._connection = None
         self.loop = asyncio.get_event_loop() if loop is None else loop
@@ -66,6 +66,12 @@ class BawlerBase:
         await (await self.pg_pool()).release(pg_conn)
         # clear cached connection property (cache_async_def)
         delattr(self, self.pg_connection.cache_attr_name)
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.drop_connection()
 
 
 class SenderMixin:
