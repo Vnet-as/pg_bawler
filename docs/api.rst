@@ -7,4 +7,3 @@ API
 
 
 .. automodule:: pg_bawler.listener
-
