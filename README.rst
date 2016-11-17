@@ -2,12 +2,12 @@
 pg_bawler
 =========
 
-.. image:: https://travis-ci.org/Vnet-as/pg_bawler.svg?branch=master
-   :target: https://travis-ci.org/Vnet-as/pg_bawler
+.. image:: https://travis-ci.org/beezz/pg_bawler.svg?branch=master
+   :target: https://travis-ci.org/beezz/pg_bawler
    :alt: Build Status
 
-.. image:: https://codecov.io/gh/Vnet-as/pg_bawler/branch/master/graph/badge.svg
-   :target: https://codecov.io/gh/Vnet-as/pg_bawler
+.. image:: https://codecov.io/gh/beezz/pg_bawler/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/beezz/pg_bawler
    :alt: Coverage Status
 
 .. image:: https://readthedocs.org/projects/pg-bawler/badge/?version=latest
