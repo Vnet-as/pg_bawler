@@ -114,6 +114,10 @@ class ListenerMixin:
     def _get_listen_statement(self, channel):
         return self.CHANNEL_REGISTRATION_TPL.format(channel=channel)
 
+    async def _re_register_all_channels(self):
+        for channel in self.registered_channels:
+            await self.register_channel(channel)
+
     async def register_channel(self, channel):
         '''
         Register ``channel`` by executing the `LISTEN` statement.
@@ -138,14 +142,18 @@ class ListenerMixin:
                 async with (await self.pg_connection()).cursor() as pg_cursor:
                     await pg_cursor.execute('SELECT 1')
                     await pg_cursor.fetchone() == (1, )
-            except psycopg2.OperationalError:
+            except (
+                psycopg2.OperationalError,
+                psycopg2.InterfaceError,
+                # This one is probably bug in aiopg
+                psycopg2.ProgrammingError
+            ):
                 LOGGER.error('Failed postgres connection!')
                 if self.try_to_reconnect:
                     LOGGER.info(
                         'Dropping this connection and creating new one.')
                     await self.drop_connection()
-                    for channel in self.registered_channels:
-                        await self.register_channel(channel)
+                    await self._re_register_all_channels()
                 else:
                     await self.stop()
             else:
@@ -161,6 +169,12 @@ class ListenerMixin:
         except asyncio.TimeoutError:
             await self.timeout_callback()
             return None
+        except psycopg2.InterfaceError:
+            if self.try_to_reconnect:
+                await self.drop_connection()
+                await self._re_register_all_channels()
+            else:
+                await self.stop()
         else:
             LOGGER.debug(
                 'Received notification from channel %s: %s',

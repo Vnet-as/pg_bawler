@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+import time
 import argparse
 
 import pytest
+import psycopg2
 
 import pg_bawler.core
 import pg_bawler.listener
@@ -131,6 +133,54 @@ def test_listener_main(connection_params, event_loop):
     event_loop.run_forever()
     assert not listen_task.exception()
     event_loop.run_until_complete(listener.drop_connection())
+
+
+@pytest.mark.asyncio
+async def test_reconnect_after_restart(
+    docker,
+    pg_server,
+    connection_params,
+    event_loop
+):
+    payload = 'aaa'
+    channel_name = 'pg_bawler_test'
+    async with NotificationListener(connection_params) as nl:
+            nl.listen_timeout = 0
+            await nl.register_channel(channel='pg_bawler_test')
+
+            async with NotificationSender(connection_params) as ns:
+                await ns.send(channel=channel_name, payload=payload)
+
+            notification = await nl.get_notification()
+            assert notification.channel == channel_name
+            assert notification.payload == payload
+            docker.restart(pg_server['Id'])
+
+            docker.restart(pg_server['Id'])
+
+            delay = 0.001
+            for i in range(100):
+                try:
+                    conn = psycopg2.connect(**connection_params)
+                    cur = conn.cursor()
+                    cur.execute('SELECT 1;')
+                    cur.close()
+                    conn.close()
+                    break
+                except psycopg2.Error as exc:
+                    time.sleep(delay)
+                    delay *= 2
+            else:
+                pytest.fail('Cannot start postgres server')
+
+            notification = await nl.get_notification()
+            assert notification is None
+
+            async with NotificationSender(connection_params) as ns:
+                await ns.send(channel=channel_name, payload=payload)
+            notification = await nl.get_notification()
+            assert notification.channel == channel_name
+            assert notification.payload == payload
 
 
 def test_main_wrong_debug_level(connection_dsn, event_loop):
