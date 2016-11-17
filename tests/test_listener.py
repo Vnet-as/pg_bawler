@@ -145,7 +145,7 @@ async def test_reconnect_after_restart(
     payload = 'aaa'
     channel_name = 'pg_bawler_test'
     async with NotificationListener(connection_params) as nl:
-            nl.listen_timeout = 0
+            nl.listen_timeout = 1
             await nl.register_channel(channel='pg_bawler_test')
 
             async with NotificationSender(connection_params) as ns:
