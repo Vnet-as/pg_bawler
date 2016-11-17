@@ -136,12 +136,18 @@ def test_listener_main(connection_params, event_loop):
 def test_main_wrong_debug_level(connection_dsn, event_loop):
     with pytest.raises(SystemExit):
         pg_bawler.listener.main(
+            '--stop-on-timeout',
             '--log-level', 'non-existent',
-            '--stop-on-timeout', '--timeout', '0', '--dsn',
-            connection_dsn, 'channel', loop=event_loop)
+            '--timeout', '0',
+            '--dsn', connection_dsn,
+            'channel',
+            loop=event_loop)
 
 
 def test_listener_entrypoint(connection_dsn, event_loop):
     pg_bawler.listener.main(
-        '--stop-on-timeout', '--timeout', '0', '--dsn',
-        connection_dsn, 'channel', loop=event_loop)
+        '--stop-on-timeout',
+        '--timeout', '0',
+        '--dsn', connection_dsn,
+        'channel',
+        loop=event_loop)
