@@ -12,7 +12,9 @@ funky fresh PostgreSQL instance and so that we can throw it away once we are
 done.
 
 
-To run dockerized PostgreSQL::
+To run dockerized PostgreSQL:
+
+.. code-block:: bash
 
         $ docker run --name bawler-tutorial -d postgres
 
@@ -26,7 +28,10 @@ Now let's ensure that PostgreSQL is running and we can connect to it::
         (1 row)
 
 
-Create tutorial table ``foo``::
+Create tutorial table ``foo``:
+
+
+.. code-block:: bash
 
         $ cat <<EOF | docker run -i --rm --link bawler-tutorial:postgres postgres psql -h postgres -U postgres
         CREATE TABLE foo (
@@ -47,12 +52,18 @@ You can always write your own trigger or procedure which will either use the
 `NOTIFY <https://www.postgresql.org/docs/current/static/sql-notify.html>`_
 command or the ``pg_notify`` function to send an event to all the listeners.
 
-Or you can generate one by using ``pg_bawler.gen_sql``::
+Or you can generate one by using ``pg_bawler.gen_sql``:
+
+
+.. code-block:: bash
 
         $ python -m pg_bawler.gen_sql foo
 
 
-This command will generate function and trigger code like::
+This command will generate function and trigger code like:
+
+
+.. code-block:: plpgsql
 
         CREATE OR REPLACE FUNCTION bawler_trigger_fn_foo() RETURNS TRIGGER AS $$
             DECLARE
@@ -76,7 +87,9 @@ This command will generate function and trigger code like::
             FOR EACH ROW EXECUTE PROCEDURE bawler_trigger_fn_foo();
 
 
-To install this trigger just pipe generated code to ``psql``::
+To install this trigger just pipe generated code to ``psql``:
+
+.. code-block:: bash
 
         $ python -m pg_bawler.gen_sql foo | docker run -i --rm --link bawler-tutorial:postgres postgres psql -h postgres -U postgres
 
@@ -87,14 +100,15 @@ Running pg_bawler listener
 Now we are running containered PostgreSQL in container named
 ``bawler-tutorial``. Let's get it's IP address so we are able to connect to it also from local ``pg_bawler``.
 
-::
+
+.. code-block:: bash
 
          $ docker inspect --format '{{ .NetworkSettings.IPAddress }}' bawler-tutorial
          172.18.0.2
 
 Or newer syntax
 
-::
+.. code-block:: bash
 
         $ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' bawler-tutorial
         172.18.0.2
@@ -106,13 +120,15 @@ To start ``pg_bawler.listener`` we'll use IP address of ``bawler-tutorial``
 container and default PostgreSQL username and database name.
 
 
-::
+.. code-block:: bash
 
         $ python -m pg_bawler.listener --dsn "dbname=postgres user=postgres host=172.18.0.2" foo
 
 
 
-Now to insert row to table ``foo`` execute::
+Now to insert row to table ``foo`` execute:
+
+.. code-block:: bash
 
         $ cat <<EOF | docker run -i --rm --link bawler-tutorial:postgres postgres psql -h postgres -U postgres
         INSERT INTO foo (name, number, created) values ('Michal Kuffa', '1', '2016-10-01'::timestamp);
