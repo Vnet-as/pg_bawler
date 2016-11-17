@@ -99,9 +99,9 @@ async def test_stop_on_timeout(connection_params):
 
 @pytest.mark.asyncio
 async def test_stop_listener(connection_params):
-    nl = NotificationListener(connection_params=connection_params)
-    await nl.stop()
-    await nl.listen()
+    async with NotificationListener(connection_params) as nl:
+        await nl.stop()
+        await nl.listen()
 
 
 def test_listener_main(connection_params, event_loop):
