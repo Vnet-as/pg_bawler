@@ -145,8 +145,6 @@ class ListenerMixin:
             except (
                 psycopg2.OperationalError,
                 psycopg2.InterfaceError,
-                # This one is probably bug in aiopg
-                psycopg2.ProgrammingError
             ):
                 LOGGER.error('Failed postgres connection!')
                 if self.try_to_reconnect:
