@@ -41,7 +41,7 @@ Create tutorial table ``foo``::
 
 
 Trigger installation
---------------------
+====================
 
 You can always write your own trigger or procedure which will either use the
 `NOTIFY <https://www.postgresql.org/docs/current/static/sql-notify.html>`_
@@ -82,7 +82,7 @@ To install this trigger just pipe generated code to ``psql``::
 
 
 Running pg_bawler listener
---------------------------
+==========================
 
 Now we are running containered PostgreSQL in container named
 ``bawler-tutorial``. Let's get it's IP address so we are able to connect to it also from local ``pg_bawler``.
@@ -127,4 +127,7 @@ If everything's working you should see in ``pg_bawler.listener``'s terminal log 
 This is behaviour of default handler, just log the notification.
 
 
-* More information about `PostgreSQL docker image <https://hub.docker.com/_/postgres/>`_
+More information
+================
+
+* `PostgreSQL docker image <https://hub.docker.com/_/postgres/>`_
