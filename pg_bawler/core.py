@@ -61,11 +61,12 @@ class BawlerBase:
         Next call to the ``self.pg_connection`` will acquire new connection
         from pool. Use this method to drop dead connections on server restart.
         '''
-        pg_conn = (await self.pg_connection())
-        pg_conn.close()
-        await (await self.pg_pool()).release(pg_conn)
-        # clear cached connection property (cache_async_def)
-        delattr(self, self.pg_connection.cache_attr_name)
+        if hasattr(self, self.pg_connection.cache_attr_name):
+            pg_conn = (await self.pg_connection())
+            pg_conn.close()
+            await (await self.pg_pool()).release(pg_conn)
+            # clear cached connection property (cache_async_def)
+            delattr(self, self.pg_connection.cache_attr_name)
 
     async def __aenter__(self):
         return self
