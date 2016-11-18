@@ -142,7 +142,6 @@ async def test_reconnect_after_restart(
         notification = await nl.get_notification()
         assert notification.channel == channel_name
         assert notification.payload == payload
-        docker.restart(pg_server['Id'])
 
         docker.restart(pg_server['Id'])
 
