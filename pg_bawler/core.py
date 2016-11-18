@@ -18,6 +18,12 @@ import aiopg
 LOGGER = logging.getLogger(name='pg_bawler.core')
 
 
+class PgBawlerException(Exception):
+    '''
+    Base class for all ``pg_bawler`` related failures
+    '''
+
+
 def cache_async_def(func):
     cache_attr_name = '_cache_async_def_{func.__name__}'.format(func=func)
     async def _cache_method(self, *args, **kwargs):
