@@ -188,3 +188,45 @@ def test_listener_entrypoint(connection_dsn, event_loop):
         '--dsn', connection_dsn,
         'channel',
         loop=event_loop)
+
+
+@pytest.mark.asyncio
+async def test_timeout_on_connection_failure(
+    docker,
+    pg_server,
+    connection_params,
+    event_loop
+):
+    payload = 'aaa'
+    channel_name = 'pg_bawler_test'
+    async with NotificationListener(connection_params) as nl:
+        nl.listen_timeout = 1
+        nl.reconnect_interval = 0.1
+        nl.reconnect_attempts = 3
+        await nl.register_channel(channel='pg_bawler_test')
+
+        async with NotificationSender(connection_params) as ns:
+            await ns.send(channel=channel_name, payload=payload)
+
+        notification = await nl.get_notification()
+        assert notification.channel == channel_name
+        assert notification.payload == payload
+
+        docker.restart(pg_server['Id'])
+
+        notification = await nl.get_notification()
+
+        delay = 0.001
+        for i in range(100):
+            try:
+                conn = psycopg2.connect(**connection_params)
+                cur = conn.cursor()
+                cur.execute('SELECT 1;')
+                cur.close()
+                conn.close()
+                break
+            except psycopg2.Error as exc:
+                time.sleep(delay)
+                delay *= 2
+        else:
+            pytest.fail('Cannot start postgres server')
