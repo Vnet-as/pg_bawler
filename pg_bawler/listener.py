@@ -25,12 +25,20 @@ import pg_bawler.core
 LOGGER = logging.getLogger('pg_bawler.listener')
 
 
+class PgBawlerListenerConnectionError(pg_bawler.core.PgBawlerException):
+    '''
+    Raised when listener lost connection and can't reconnect
+    '''
+
+
 class ListenerMixin:
 
     CHANNEL_REGISTRATION_TPL = 'LISTEN {channel}'
-    listen_timeout = None
+    listen_timeout = 30
     stop_on_timeout = False
     try_to_reconnect = True
+    reconnect_interval = 5
+    reconnect_attempts = None
     _stopped = False
 
     async def stop(self):
@@ -47,6 +55,47 @@ class ListenerMixin:
         if not hasattr(self, prop_name):
             setattr(self, prop_name, {})
         return getattr(self, prop_name)
+
+    async def _reconnect(self):
+        '''
+        Tries to reconnect for ``reconnect_attempts`` and waits
+        ``reconnect_interval`` between attempts.  Set ``reconnect_attempts`` to
+        ``None`` to keep reconnecting indefinitely.
+        '''
+        reconnects_attempted = 0
+        while True:
+            try:
+                LOGGER.info(
+                    'Trying to reconnect for %s time!',
+                    reconnects_attempted + 1)
+                async with (
+                    await self.pg_connection()
+                ).cursor() as pg_cursor:
+                    await pg_cursor.execute('SELECT 1')
+                    await pg_cursor.fetchone() == (1, )
+            except psycopg2.Error:
+                await self.drop_connection()
+                if self.reconnect_interval:
+                    await asyncio.sleep(
+                        self.reconnect_interval,
+                        loop=self.loop)
+                LOGGER.error(
+                    'Reconnect attempt %s failed!',
+                    reconnects_attempted + 1)
+                reconnects_attempted += 1
+                if self.reconnect_attempts is not None and (
+                    reconnects_attempted >= self.reconnect_attempts
+                ):
+                    raise PgBawlerListenerConnectionError((
+                        'Connection [%s] lost! '
+                        'Tried to reconnect %s times') % (
+                            self.connection_params, reconnects_attempted
+                    ))
+            else:
+                LOGGER.error(
+                    'Reconnect attempt %s successful!',
+                    reconnects_attempted + 1)
+                break
 
     def _get_listen_statement(self, channel):
         return self.CHANNEL_REGISTRATION_TPL.format(channel=channel)
@@ -85,9 +134,7 @@ class ListenerMixin:
             ):
                 LOGGER.error('Failed postgres connection!')
                 if self.try_to_reconnect:
-                    LOGGER.info(
-                        'Dropping this connection and creating new one.')
-                    await self.drop_connection()
+                    await self._reconnect()
                     await self._re_register_all_channels()
                 else:
                     await self.stop()
@@ -106,10 +153,11 @@ class ListenerMixin:
             return None
         except psycopg2.InterfaceError:
             if self.try_to_reconnect:
-                await self.drop_connection()
+                await self._reconnect()
                 await self._re_register_all_channels()
             else:
                 await self.stop()
+            return None
         else:
             LOGGER.debug(
                 'Received notification from channel %s: %s',
