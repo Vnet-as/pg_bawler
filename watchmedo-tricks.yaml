@@ -1,5 +1,5 @@
 tricks:
 - watchdog.tricks.ShellCommandTrick:
     patterns: ["*.py"]
-    shell_command: "python -m pytest --cov=pg_bawler --cov-report=term-missing tests"
+    shell_command: "python -m pytest --exitfirst --verbose --cov=pg_bawler --cov-report=term-missing tests"
     drop_during_process: true
