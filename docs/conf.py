@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import site
 import os
+import site
 
 site.addsitedir(os.path.abspath('..'))
 

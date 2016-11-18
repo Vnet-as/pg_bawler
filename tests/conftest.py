@@ -1,6 +1,6 @@
+import os
 import time
 import uuid
-import os
 
 import psycopg2
 import pytest
