@@ -1,26 +1,14 @@
 #!/usr/bin/env python
-import time
 import argparse
+import time
 
-import pytest
 import psycopg2
+import pytest
 
 import pg_bawler.core
 import pg_bawler.listener
-
-
-class NotificationListener(
-    pg_bawler.core.BawlerBase,
-    pg_bawler.core.ListenerMixin
-):
-    pass
-
-
-class NotificationSender(
-    pg_bawler.core.BawlerBase,
-    pg_bawler.core.SenderMixin
-):
-    pass
+from pg_bawler.listener import NotificationListener
+from pg_bawler.sender import NotificationSender
 
 
 @pytest.fixture
@@ -37,7 +25,7 @@ def connection_dsn(connection_params):
 
 
 def test_register_handlers():
-    listener = pg_bawler.core.ListenerMixin()
+    listener = pg_bawler.listener.ListenerMixin()
     assert listener.register_handler('channel', 'handler') is None
     assert listener.registered_channels['channel'] == ['handler']
 
@@ -145,42 +133,42 @@ async def test_reconnect_after_restart(
     payload = 'aaa'
     channel_name = 'pg_bawler_test'
     async with NotificationListener(connection_params) as nl:
-            nl.listen_timeout = 1
-            await nl.register_channel(channel='pg_bawler_test')
+        nl.listen_timeout = 1
+        await nl.register_channel(channel='pg_bawler_test')
 
-            async with NotificationSender(connection_params) as ns:
-                await ns.send(channel=channel_name, payload=payload)
+        async with NotificationSender(connection_params) as ns:
+            await ns.send(channel=channel_name, payload=payload)
 
-            notification = await nl.get_notification()
-            assert notification.channel == channel_name
-            assert notification.payload == payload
-            docker.restart(pg_server['Id'])
+        notification = await nl.get_notification()
+        assert notification.channel == channel_name
+        assert notification.payload == payload
+        docker.restart(pg_server['Id'])
 
-            docker.restart(pg_server['Id'])
+        docker.restart(pg_server['Id'])
 
-            delay = 0.001
-            for i in range(100):
-                try:
-                    conn = psycopg2.connect(**connection_params)
-                    cur = conn.cursor()
-                    cur.execute('SELECT 1;')
-                    cur.close()
-                    conn.close()
-                    break
-                except psycopg2.Error as exc:
-                    time.sleep(delay)
-                    delay *= 2
-            else:
-                pytest.fail('Cannot start postgres server')
+        delay = 0.001
+        for i in range(100):
+            try:
+                conn = psycopg2.connect(**connection_params)
+                cur = conn.cursor()
+                cur.execute('SELECT 1;')
+                cur.close()
+                conn.close()
+                break
+            except psycopg2.Error as exc:
+                time.sleep(delay)
+                delay *= 2
+        else:
+            pytest.fail('Cannot start postgres server')
 
-            notification = await nl.get_notification()
-            assert notification is None
+        notification = await nl.get_notification()
+        assert notification is None
 
-            async with NotificationSender(connection_params) as ns:
-                await ns.send(channel=channel_name, payload=payload)
-            notification = await nl.get_notification()
-            assert notification.channel == channel_name
-            assert notification.payload == payload
+        async with NotificationSender(connection_params) as ns:
+            await ns.send(channel=channel_name, payload=payload)
+        notification = await nl.get_notification()
+        assert notification.channel == channel_name
+        assert notification.payload == payload
 
 
 def test_main_wrong_debug_level(connection_dsn, event_loop):
