@@ -68,3 +68,67 @@ def pg_server(docker, pg_tag, session_id):
 
     docker.kill(container=container['Id'])
     docker.remove_container(container['Id'])
+
+
+@pytest.fixture(scope='session')
+def pg_server_stop(docker, pg_server):
+    def _stop():
+        conn = psycopg2.connect(**pg_server['pg_params'])
+        docker.stop(pg_server['Id'])
+        delay = 0.001
+        for i in range(100):
+            try:
+                cur = conn.cursor()
+                cur.execute('SELECT 1;')
+                cur.close()
+            except psycopg2.Error as exc:
+                conn.close()
+                break
+            else:
+                time.sleep(delay)
+                delay *= 2
+        else:
+            pytest.fail('Cannot stop the server')
+    return _stop
+
+
+@pytest.fixture(scope='session')
+def pg_server_start(docker, pg_server):
+    def _start():
+        docker.start(pg_server['Id'])
+        delay = 0.001
+        for i in range(100):
+            try:
+                conn = psycopg2.connect(**pg_server['pg_params'])
+                cur = conn.cursor()
+                cur.execute('SELECT 1;')
+                cur.close()
+                conn.close()
+                break
+            except psycopg2.Error as exc:
+                time.sleep(delay)
+                delay *= 2
+        else:
+            pytest.fail('Cannot start postgres server')
+    return _start
+
+
+@pytest.fixture(scope='session')
+def pg_server_restart(docker, pg_server):
+    def _restart():
+        docker.restart(pg_server['Id'])
+        delay = 0.001
+        for i in range(100):
+            try:
+                conn = psycopg2.connect(**pg_server['pg_params'])
+                cur = conn.cursor()
+                cur.execute('SELECT 1;')
+                cur.close()
+                conn.close()
+                break
+            except psycopg2.Error as exc:
+                time.sleep(delay)
+                delay *= 2
+        else:
+            pytest.fail('Cannot start postgres server')
+    return _restart
