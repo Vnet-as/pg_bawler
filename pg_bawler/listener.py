@@ -58,9 +58,9 @@ class ListenerMixin:
 
     async def _reconnect(self):
         '''
-        Tries to reconnect for ``reconnect_attempts`` and waits
-        ``reconnect_interval`` between attempts.  Set ``reconnect_attempts`` to
-        ``None`` to keep reconnecting indefinitely.
+        Tries to reconnect for ``reconnect_attempts`` times, waiting
+        ``reconnect_interval`` between attempts.  Sets ``reconnect_attempts``
+        to ``None`` to keep reconnecting indefinitely.
         '''
         reconnects_attempted = 0
         while True:
@@ -74,15 +74,11 @@ class ListenerMixin:
                     await pg_cursor.execute('SELECT 1')
                     await pg_cursor.fetchone() == (1, )
             except psycopg2.Error:
-                await self.drop_connection()
-                if self.reconnect_interval:
-                    await asyncio.sleep(
-                        self.reconnect_interval,
-                        loop=self.loop)
-                LOGGER.error(
-                    'Reconnect attempt %s failed!',
-                    reconnects_attempted + 1)
                 reconnects_attempted += 1
+                LOGGER.error(
+                    'Reconnect attempt %s of %s failed!',
+                    reconnects_attempted,
+                    self.reconnect_attempts or '[Inf]')
                 if self.reconnect_attempts is not None and (
                     reconnects_attempted >= self.reconnect_attempts
                 ):
@@ -92,10 +88,18 @@ class ListenerMixin:
                             {**self.connection_params, 'password': '*****'},
                             reconnects_attempted
                     ))
+                if self.reconnect_interval:
+                    await asyncio.sleep(
+                        self.reconnect_interval,
+                        loop=self.loop)
+                await self.drop_connection()
+                continue
             else:
+                reconnects_attempted += 1
                 LOGGER.error(
-                    'Reconnect attempt %s successful!',
-                    reconnects_attempted + 1)
+                    'Reconnect attempt %s of %s successful!',
+                    reconnects_attempted,
+                    self.reconnect_attempts or '[Inf]')
                 break
 
     def _get_listen_statement(self, channel):
