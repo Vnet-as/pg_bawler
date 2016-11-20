@@ -89,7 +89,8 @@ class ListenerMixin:
                     raise PgBawlerListenerConnectionError((
                         'Connection [%s] lost! '
                         'Tried to reconnect %s times') % (
-                            self.connection_params, reconnects_attempted
+                            {**self.connection_params, 'password': '*****'},
+                            reconnects_attempted
                     ))
             else:
                 LOGGER.error(
