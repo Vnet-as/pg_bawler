@@ -173,7 +173,7 @@ async def test_get_notification_unable_to_reconnect(
     pg_server_start,
 ):
     async with NotificationListener(connection_params) as nl:
-        nl.listen_timeout = 0
+        nl.listen_timeout = 0.1
         nl.reconnect_interval = 0.1
         nl.reconnect_attempts = 1
         await nl.register_channel(channel='pg_bawler_test')
@@ -183,3 +183,21 @@ async def test_get_notification_unable_to_reconnect(
         ):
             await nl.get_notification()
         pg_server_start()
+
+
+@pytest.mark.asyncio
+async def test_get_notification_interface_error(
+    connection_params,
+    pg_server_stop,
+    pg_server_start
+):
+    pg_server_stop()
+    async with NotificationListener(connection_params) as nl:
+        nl.listen_timeout = 0.1
+        nl.reconnect_interval = 0.1
+        nl.reconnect_attempts = 1
+        with pytest.raises(
+            pg_bawler.listener.PgBawlerListenerConnectionError
+        ):
+            await nl.get_notification()
+    pg_server_start()
