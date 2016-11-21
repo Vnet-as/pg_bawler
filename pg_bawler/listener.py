@@ -156,7 +156,10 @@ class ListenerMixin:
         except asyncio.TimeoutError:
             await self.timeout_callback()
             return None
-        except psycopg2.InterfaceError:
+        except (
+            psycopg2.InterfaceError,
+            psycopg2.OperationalError
+        ):
             if self.try_to_reconnect:
                 await self._reconnect()
                 await self._re_register_all_channels()
