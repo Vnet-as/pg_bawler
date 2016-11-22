@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import argparse
+import asyncio
 
+import psycopg2
 import pytest
 
 import pg_bawler.core
@@ -169,29 +171,43 @@ def test_listener_entrypoint(connection_dsn, event_loop):
 @pytest.mark.asyncio
 async def test_get_notification_unable_to_reconnect(
     connection_params,
-    pg_server_stop,
-    pg_server_start,
+    monkeypatch,
 ):
+    @pg_bawler.core.cache_async_def
+    async def pg_connection(self):
+        raise psycopg2.InterfaceError('Error')
+
+    monkeypatch.setattr(
+        NotificationListener,
+        'pg_connection',
+        pg_connection)
     async with NotificationListener(connection_params) as nl:
         nl.listen_timeout = 0.1
         nl.reconnect_interval = 0.1
         nl.reconnect_attempts = 1
-        await nl.register_channel(channel='pg_bawler_test')
-        pg_server_stop()
         with pytest.raises(
             pg_bawler.listener.PgBawlerListenerConnectionError
         ):
             await nl.get_notification()
-        pg_server_start()
 
 
 @pytest.mark.asyncio
-async def test_get_notification_interface_error(
+async def test_get_notification_timeout_unable_to_reconnect(
     connection_params,
-    pg_server_stop,
-    pg_server_start
+    monkeypatch,
 ):
-    pg_server_stop()
+    @pg_bawler.core.cache_async_def
+    async def pg_connection(self):
+        raise psycopg2.OperationalError('Error')
+
+    async def wait_for(*args, **kwargs):
+        raise asyncio.TimeoutError('time up')
+
+    monkeypatch.setattr(asyncio, 'wait_for', wait_for)
+    monkeypatch.setattr(
+        NotificationListener,
+        'pg_connection',
+        pg_connection)
     async with NotificationListener(connection_params) as nl:
         nl.listen_timeout = 0.1
         nl.reconnect_interval = 0.1
@@ -200,4 +216,3 @@ async def test_get_notification_interface_error(
             pg_bawler.listener.PgBawlerListenerConnectionError
         ):
             await nl.get_notification()
-    pg_server_start()
