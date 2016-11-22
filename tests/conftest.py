@@ -72,17 +72,19 @@ def pg_server(docker, pg_tag, session_id):
 
 @pytest.fixture(scope='session')
 def pg_server_stop(docker, pg_server):
-    def _stop():
-        conn = psycopg2.connect(**pg_server['pg_params'])
+    def _stop(wait=True):
         docker.stop(pg_server['Id'])
+        if not wait:
+            return None
         delay = 0.001
         for i in range(100):
             try:
+                conn = psycopg2.connect(**pg_server['pg_params'])
                 cur = conn.cursor()
                 cur.execute('SELECT 1;')
                 cur.close()
-            except psycopg2.Error as exc:
                 conn.close()
+            except psycopg2.Error as exc:
                 break
             else:
                 time.sleep(delay)
@@ -94,8 +96,10 @@ def pg_server_stop(docker, pg_server):
 
 @pytest.fixture(scope='session')
 def pg_server_start(docker, pg_server):
-    def _start():
+    def _start(wait=True):
         docker.start(pg_server['Id'])
+        if not wait:
+            return None
         delay = 0.001
         for i in range(100):
             try:
@@ -115,8 +119,10 @@ def pg_server_start(docker, pg_server):
 
 @pytest.fixture(scope='session')
 def pg_server_restart(docker, pg_server):
-    def _restart():
+    def _restart(wait=True):
         docker.restart(pg_server['Id'])
+        if not wait:
+            return None
         delay = 0.001
         for i in range(100):
             try:
