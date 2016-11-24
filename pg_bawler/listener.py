@@ -128,23 +128,14 @@ class ListenerMixin:
             await self.stop()
         else:
             LOGGER.debug(
-                'Checking health of connection.')
-            try:
-                async with (await self.pg_connection()).cursor() as pg_cursor:
-                    await pg_cursor.execute('SELECT 1')
-                    await pg_cursor.fetchone() == (1, )
-            except (
-                psycopg2.OperationalError,
-                psycopg2.InterfaceError,
-            ):
-                LOGGER.error('Failed postgres connection!')
-                if self.try_to_reconnect:
-                    await self._reconnect()
-                    await self._re_register_all_channels()
-                else:
-                    await self.stop()
-            else:
-                LOGGER.debug('Connection seems to be OK.')
+                'Checking health of connection [%s].',
+                {**self.connection_params, 'password': '*****'})
+            async with (await self.pg_connection()).cursor() as pg_cursor:
+                await pg_cursor.execute('SELECT 1')
+                await pg_cursor.fetchone() == (1, )
+            LOGGER.debug(
+                'Connection healthy [%s].',
+                {**self.connection_params, 'password': '*****'})
 
     async def get_notification(self):
         try:
@@ -155,16 +146,6 @@ class ListenerMixin:
             )
         except asyncio.TimeoutError:
             await self.timeout_callback()
-            return None
-        except (
-            psycopg2.InterfaceError,
-            psycopg2.OperationalError
-        ):
-            if self.try_to_reconnect:
-                await self._reconnect()
-                await self._re_register_all_channels()
-            else:
-                await self.stop()
             return None
         else:
             LOGGER.debug(
@@ -204,13 +185,27 @@ class ListenerMixin:
                 LOGGER.debug('Handler %s unregistered.')
         return None
 
-    async def listen(self):
-        while not self.is_stopped:
+    async def _listen(self):
+        try:
             notification = await self.get_notification()
+        except (
+            psycopg2.InterfaceError,
+            psycopg2.OperationalError
+        ):
+            if self.try_to_reconnect:
+                await self._reconnect()
+                await self._re_register_all_channels()
+            else:
+                await self.stop()
+        else:
             if notification is not None:
                 handlers = self.registered_channels[notification.channel]
                 for handler in handlers:
                     self.loop.create_task(handler(notification, self))
+
+    async def listen(self):
+        while not self.is_stopped:
+            await self._listen()
 
 
 class DefaultHandler:
