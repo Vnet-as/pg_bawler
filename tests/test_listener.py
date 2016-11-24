@@ -138,10 +138,7 @@ async def test_reconnect_after_restart(
         assert notification.channel == channel_name
         assert notification.payload == payload
         pg_server_restart()
-        await nl._reconnect()
-        await nl._re_register_all_channels()
-        notification = await nl.get_notification()
-        assert notification is None
+        await nl._listen()
         async with NotificationSender(connection_params) as ns:
             await ns.send(channel=channel_name, payload=payload)
         notification = await nl.get_notification()
@@ -189,4 +186,4 @@ async def test_get_notification_unable_to_reconnect(
         with pytest.raises(
             pg_bawler.listener.PgBawlerListenerConnectionError
         ):
-            await nl._reconnect()
+            await nl._listen()
