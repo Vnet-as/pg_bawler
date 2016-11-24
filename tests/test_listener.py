@@ -139,6 +139,8 @@ async def test_reconnect_after_restart(
         assert notification.channel == channel_name
         assert notification.payload == payload
         pg_server_restart()
+        await nl._reconnect()
+        await nl._re_register_all_channels()
         notification = await nl.get_notification()
         assert notification is None
         async with NotificationSender(connection_params) as ns:
