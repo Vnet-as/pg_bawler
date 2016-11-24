@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import argparse
-import asyncio
 
 import psycopg2
 import pytest
@@ -190,31 +189,4 @@ async def test_get_notification_unable_to_reconnect(
         with pytest.raises(
             pg_bawler.listener.PgBawlerListenerConnectionError
         ):
-            await nl.get_notification()
-
-
-@pytest.mark.asyncio
-async def test_get_notification_timeout_unable_to_reconnect(
-    connection_params,
-    monkeypatch,
-):
-    @pg_bawler.core.cache_async_def
-    async def pg_connection(self):
-        raise psycopg2.OperationalError('Error')
-
-    async def wait_for(*args, **kwargs):
-        raise asyncio.TimeoutError('time up')
-
-    monkeypatch.setattr(asyncio, 'wait_for', wait_for)
-    monkeypatch.setattr(
-        NotificationListener,
-        'pg_connection',
-        pg_connection)
-    async with NotificationListener(connection_params) as nl:
-        nl.listen_timeout = 0.1
-        nl.reconnect_interval = 0.1
-        nl.reconnect_attempts = 1
-        with pytest.raises(
-            pg_bawler.listener.PgBawlerListenerConnectionError
-        ):
-            await nl.get_notification()
+            await nl._reconnect()
