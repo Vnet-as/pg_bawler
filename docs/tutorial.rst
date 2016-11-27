@@ -1,4 +1,3 @@
-
 ========
 Tutorial
 ========
@@ -8,8 +7,7 @@ Prepare `PostgreSQL <https://www.postgresql.org/>`_ database
 ============================================================
 
 In this tutorial we will use `Docker <http://www.docker.com/>`_ for running
-funky fresh PostgreSQL instance and so that we can throw it away once we are
-done.
+fresh PostgreSQL instance and so that we can throw it away once we are done.
 
 
 To run dockerized PostgreSQL:
@@ -19,9 +17,39 @@ To run dockerized PostgreSQL:
         $ docker run --name bawler-tutorial -d postgres
 
 
-Now let's ensure that PostgreSQL is running and we can connect to it::
+Let's get the container's IP address so we can connect to it.
 
-        $ echo "SELECT 1" | docker run -i --rm --link bawler-tutorial:postgres postgres psql -h postgres -U postgres
+
+.. code-block:: bash
+
+        $ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' bawler-tutorial
+        172.18.0.4
+
+
+Now let's ensure that PostgreSQL is running and we can connect to it. For this
+we need ``psql``. Install it using your system package manger.
+
+.. code-block:: bash
+
+    $ apt-get install postgresql-client
+
+
+Prepare environment variables so we don't need to repeat connection CLI args
+with every ``psql`` call
+
+
+.. code-block:: bash
+
+        $ export PGUSER=postgres
+        $ export PGHOST=172.18.0.4
+
+
+Check out that it's working
+
+
+.. code-block:: bash
+
+        $ psql -c 'SELECT 1'
          ?column?
         ----------
                 1
@@ -33,7 +61,7 @@ Create tutorial table ``foo``:
 
 .. code-block:: bash
 
-        $ cat <<EOF | docker run -i --rm --link bawler-tutorial:postgres postgres psql -h postgres -U postgres
+        $ cat <<EOF | psql
         CREATE TABLE foo (
           id serial primary key,
           name text,
@@ -91,29 +119,14 @@ To install this trigger just pipe generated code to ``psql``:
 
 .. code-block:: bash
 
-        $ python -m pg_bawler.gen_sql foo | docker run -i --rm --link bawler-tutorial:postgres postgres psql -h postgres -U postgres
+        $ python -m pg_bawler.gen_sql foo | psql
 
 
 Running pg_bawler listener
 ==========================
 
 Now we are running containered PostgreSQL in container named
-``bawler-tutorial``. Let's get it's IP address so we are able to connect to it also from local ``pg_bawler``.
-
-
-.. code-block:: bash
-
-         $ docker inspect --format '{{ .NetworkSettings.IPAddress }}' bawler-tutorial
-         172.18.0.2
-
-Or newer syntax
-
-.. code-block:: bash
-
-        $ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' bawler-tutorial
-        172.18.0.2
-
-
+``bawler-tutorial``.
 Let's start ``pg_bawler.listener`` in one terminal and insert a row into the ``foo`` table from another terminal.
 
 To start ``pg_bawler.listener`` we'll use IP address of ``bawler-tutorial``
@@ -130,12 +143,12 @@ Now to insert row to table ``foo`` execute:
 
 .. code-block:: bash
 
-        $ cat <<EOF | docker run -i --rm --link bawler-tutorial:postgres postgres psql -h postgres -U postgres
+        $ cat <<EOF | psql
         INSERT INTO foo (name, number, created) values ('Michal Kuffa', '1', '2016-10-01'::timestamp);
         EOF
 
 
-If everything's working you should see in ``pg_bawler.listener``'s terminal log something like::
+If everything's working, you should see in ``pg_bawler.listener``'s terminal something like::
 
         [2016-11-02 21:52:42,266][pg_bawler.listener][INFO]: Received notification #1 pid 2964 from channel foo: INSERT {"id":3,"name":"Michal","number":1,"created":"2016-10-01T00:00:00"}
 
