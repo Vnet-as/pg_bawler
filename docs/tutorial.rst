@@ -1,6 +1,7 @@
-========
-Tutorial
-========
+
+============
+Walk–through
+============
 
 
 Prepare `PostgreSQL <https://www.postgresql.org/>`_ database
