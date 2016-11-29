@@ -18,11 +18,11 @@ def build_config_location_list(
     locations=DEFAULT_CONFIG_LOCATIONS,
     filename=DEFAULT_CONFIG_FILENAME
 ):
+    '''
+    Builds list of absolute paths to configuration files defined by list of
+    ``location`` and ``filename``.
+    '''
     return [
-        os.path.join(os.path.expanduser(location), filename)
+        os.path.abspath(os.path.join(os.path.expanduser(location), filename))
         for location in locations
     ]
-
-
-def read_configuration(*filenames):
-    pass
