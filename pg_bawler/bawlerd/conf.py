@@ -20,7 +20,7 @@ def build_config_location_list(
 ):
     '''
     Builds list of absolute paths to configuration files defined by list of
-    ``location`` and ``filename``.
+    ``locations`` and ``filename``. You may use `~` for root of user directory.
     '''
     return [
         os.path.abspath(os.path.join(os.path.expanduser(location), filename))
