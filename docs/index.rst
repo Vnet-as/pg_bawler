@@ -13,6 +13,7 @@ Contents:
    :maxdepth: 2
 
    intro
+   pg_bawlerd/config
    tutorial
    api
 

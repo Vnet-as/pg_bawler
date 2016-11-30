@@ -1,0 +1,37 @@
+
+
+common:
+  key: value
+
+connections:
+  - name: "Clients database"
+    connection_params:
+      dbname: clients
+      user: dbuser
+      host: postgresql.com
+      port: 5432
+    channels:
+      - name: "client channel"
+        handlers:
+          - name: "update index in elastic"
+            call: path.to.some:callable
+            config:
+              key: value
+              arg: kwarg
+          - name: "invalidate cache"
+            call: path.to.some:another_callable
+            config:
+              key: value
+              arg: kwarg
+      - name: "contracts channel"
+        handlers:
+          - name: "update index in elastic"
+            call: path.to.some:callable
+            config:
+              key: value
+              arg: kwarg
+          - name: "invalidate cache"
+            call: path.to.some:another_callable
+            config:
+              key: value
+              arg: kwarg
