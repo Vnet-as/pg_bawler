@@ -1,10 +1,18 @@
 
 
 common:
-  key: value
+  listen_timeout: 30
+  stop_on_timeout: False
+  try_to_reconnect: True
+  reconnect_interval: 5
+
 
 connections:
   - name: "Clients database"
+    listen_timeout: 30
+    stop_on_timeout: False
+    try_to_reconnect: True
+    reconnect_interval: 5
     connection_params:
       dbname: clients
       user: dbuser
