@@ -5,6 +5,7 @@ common:
   stop_on_timeout: False
   try_to_reconnect: True
   reconnect_interval: 5
+  reconnect_attempts: null
 
 
 connections:
