@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import site
+
 import sphinx_rtd_theme
 
 site.addsitedir(os.path.abspath('..'))
