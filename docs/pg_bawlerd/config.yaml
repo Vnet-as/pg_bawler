@@ -1,4 +1,18 @@
 
+logging:
+  formatters:
+    standard:
+      format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+  handlers:
+    default:
+      level: "INFO"
+      formatter: standard
+      class: logging.StreamHandler
+  loggers:
+    "":
+      handlers: ["default"]
+      level: INFO
+      propagate: True
 
 common:
   listen_timeout: 30
