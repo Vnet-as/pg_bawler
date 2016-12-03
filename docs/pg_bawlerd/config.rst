@@ -1,5 +1,26 @@
+=============
+Configuration
+=============
 
-=====================
+
+Connections
+===========
+
+
+Channels
+========
+
+
+Handlers
+========
+
+
+
+Logging
+=======
+
+
+
 Configuration example
 =====================
 
