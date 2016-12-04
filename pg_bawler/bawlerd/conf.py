@@ -30,13 +30,13 @@ def build_config_location_list(
     ]
 
 
-def _load_file(_file):
+def _load_file(_file, ft='yaml', default_loader=yaml.load):
     '''
     Parse file into a python object (mapping).
 
     TODO: Only yaml for now, maybe more formats later.
     '''
-    return yaml.load(_file)
+    return {'yaml': yaml.load}.get(ft, default_loader)(_file)
 
 
 def _merge_configs(base, precede):
@@ -54,6 +54,6 @@ def read_config_files(config_locations):
     '''
     config = {}
     for config_location in config_locations:
-        with open(config_location) as config_file:
+        with open(config_location, 'r', encoding='utf-8') as config_file:
             config = _merge_configs(config, _load_file(config_file))
     return config
