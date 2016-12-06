@@ -52,3 +52,24 @@ class TestBawlerdConfig:
 
         assert config['common']['listen_timeout'] == 40
         assert 'logging' in config
+
+    def test_merge_nested(self):
+        base = {
+            'handlers': {
+                'default': {
+                    'class': 'logging.StreamHandler',
+                    'level': 'INFO',
+                    'formatter': 'standard'
+                }
+            }
+        }
+        precede = {
+            'handlers': {
+                'default': {
+                    'level': 'DEBUG',
+                }
+            }
+        }
+        merged = bawlerd.conf._merge_configs(base, precede)
+        assert merged['handlers']['default']['level'] == 'DEBUG'
+        assert merged['handlers']['default']['class'] == 'logging.StreamHandler'  # NOQA
