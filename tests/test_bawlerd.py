@@ -63,13 +63,7 @@ class TestBawlerdConfig:
                 }
             }
         }
-        precede = {
-            'handlers': {
-                'default': {
-                    'level': 'DEBUG',
-                }
-            }
-        }
+        precede = {'handlers': {'default': {'level': 'DEBUG'}}}
         merged = bawlerd.conf._merge_configs(base, precede)
         assert merged['handlers']['default']['level'] == 'DEBUG'
         assert merged['handlers']['default']['class'] == 'logging.StreamHandler'  # NOQA
