@@ -1,0 +1,4 @@
+
+common:
+  listen_timeout: 40
+  stop_on_timeout: True

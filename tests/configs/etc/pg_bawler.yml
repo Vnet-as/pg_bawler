@@ -1,0 +1,39 @@
+
+logging:
+  formatters:
+    standard:
+      format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+  handlers:
+    default:
+      level: "INFO"
+      formatter: standard
+      class: logging.StreamHandler
+  loggers:
+    "":
+      handlers: ["default"]
+      level: INFO
+      propagate: True
+
+common:
+  listen_timeout: 30
+  stop_on_timeout: False
+  try_to_reconnect: True
+  reconnect_interval: 5
+  reconnect_attempts: null
+
+
+connections:
+  - name: "Clients database"
+    connection_params:
+      dbname: clients
+      user: dbuser
+      host: postgresql.com
+      port: 5432
+    channels:
+      - name: "client channel"
+        handlers:
+          - name: "update index in elastic"
+            call: path.to.some:callable
+            config:
+              key: value
+              arg: kwarg
