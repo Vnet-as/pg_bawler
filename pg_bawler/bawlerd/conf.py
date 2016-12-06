@@ -47,9 +47,12 @@ def _merge_configs(base, precede):
     '''
     result = {}
     for key in set(itertools.chain(base.keys(), precede.keys())):
-        value = precede[key] if key in precede else base[key]
-        if isinstance(value, collections.Mapping):
-            value = _merge_configs(base.get(key, {}), value)
+        if key in precede and key in base:
+            value = precede[key]
+            if isinstance(value, collections.Mapping):
+                value = _merge_configs(base[key], precede[key])
+        else:
+            value = precede[key] if key in precede else base[key]
         result[key] = value
     return result
 
