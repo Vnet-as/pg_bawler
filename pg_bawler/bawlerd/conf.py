@@ -1,3 +1,5 @@
+import collections
+import itertools
 import os
 
 import yaml
@@ -41,11 +43,15 @@ def _load_file(_file, ft='yaml', default_loader=yaml.load):
 
 def _merge_configs(base, precede):
     '''
-    Merges configurations.
-
-    TODO: Merge different nested sections in different fashion.
+    Nested merge of configurations.
     '''
-    return {**base, **precede}
+    result = {}
+    for key in set(itertools.chain(base.keys(), precede.keys())):
+        value = precede[key] if key in precede else base[key]
+        if isinstance(value, collections.Mapping):
+            value = _merge_configs(base.get(key, {}), value)
+        result[key] = value
+    return result
 
 
 def read_config_files(config_locations):
