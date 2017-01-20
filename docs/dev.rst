@@ -36,6 +36,9 @@ With local virtualenv
 
 .. note:: Make sure that you are using python 3.5+
 
+.. note:: For running tests persmissions for using docker are required.
+
+
 Create virtualenv for example with `venv <https://docs.python.org/3/library/venv.html>`_.
 
 .. code-block:: bash
