@@ -47,7 +47,7 @@ Activate created environment
 
 .. code-block:: bash
 
-   source /path/to/new/virtua/environment
+   source /path/to/new/virtua/environment/bin/activate
 
 
 With activated virtual environment, install dependencies
