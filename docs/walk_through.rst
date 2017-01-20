@@ -15,7 +15,7 @@ To run dockerized PostgreSQL:
 
 .. code-block:: bash
 
-        $ docker run --name bawler-tutorial -d postgres
+        docker run --name bawler-tutorial -d postgres
 
 
 Let's get the container's IP address so we can connect to it.
@@ -23,7 +23,7 @@ Let's get the container's IP address so we can connect to it.
 
 .. code-block:: bash
 
-        $ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' bawler-tutorial
+        docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' bawler-tutorial
         172.18.0.4
 
 
@@ -32,7 +32,7 @@ we need ``psql``. Install it using your system package manger.
 
 .. code-block:: bash
 
-    $ apt-get install postgresql-client
+    apt-get install postgresql-client
 
 
 Prepare environment variables so we don't need to repeat connection CLI args
@@ -41,8 +41,8 @@ with every ``psql`` call
 
 .. code-block:: bash
 
-        $ export PGUSER=postgres
-        $ export PGHOST=172.18.0.4
+        export PGUSER=postgres
+        export PGHOST=172.18.0.4
 
 
 Check out that it's working
@@ -50,7 +50,7 @@ Check out that it's working
 
 .. code-block:: bash
 
-        $ psql -c 'SELECT 1'
+        psql -c 'SELECT 1'
          ?column?
         ----------
                 1
@@ -62,7 +62,7 @@ Create tutorial table ``foo``:
 
 .. code-block:: bash
 
-        $ cat <<EOF | psql
+        cat <<EOF | psql
         CREATE TABLE foo (
           id serial primary key,
           name text,
@@ -86,7 +86,7 @@ Or you can generate one by using ``pg_bawler.gen_sql``:
 
 .. code-block:: bash
 
-        $ python -m pg_bawler.gen_sql foo
+        python -m pg_bawler.gen_sql foo
 
 
 This command will generate function and trigger code like:
@@ -120,7 +120,7 @@ To install this trigger just pipe generated code to ``psql``:
 
 .. code-block:: bash
 
-        $ python -m pg_bawler.gen_sql foo | psql
+        python -m pg_bawler.gen_sql foo | psql
 
 
 Running pg_bawler listener
@@ -136,7 +136,7 @@ container and default PostgreSQL username and database name.
 
 .. code-block:: bash
 
-        $ python -m pg_bawler.listener --dsn "dbname=postgres user=postgres host=172.18.0.2" foo
+        python -m pg_bawler.listener --dsn "dbname=postgres user=postgres host=172.18.0.2" foo
 
 
 
@@ -144,7 +144,7 @@ Now to insert row to table ``foo`` execute:
 
 .. code-block:: bash
 
-        $ cat <<EOF | psql
+        cat <<EOF | psql
         INSERT INTO foo (name, number, created) values ('Michal Kuffa', '1', '2016-10-01'::timestamp);
         EOF
 
