@@ -14,7 +14,8 @@ Contents:
 
    intro
    pg_bawlerd/config
-   tutorial
+   dev
+   walk_through
    api
 
 
