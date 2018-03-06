@@ -1,3 +1,4 @@
+.pytest_cache
 # sphinx buld directory
 _build
 # mk style virtualenvs
