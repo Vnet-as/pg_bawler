@@ -235,6 +235,7 @@ def get_default_cli_args_parser():
         '--log-level',
         metavar='LOG_LEVEL',
         default='INFO',
+        choices="FATAL CIRTICAL ERROR WARNING INFO DEBUG".split(),
         help='Log level. One of: FATAL, CIRTICAL, ERROR, WARNING, INFO, DEBUG')
     parser.add_argument(
         '--dsn',
@@ -295,12 +296,9 @@ def _main(
 
 def main(*argv, loop=None):
     args = get_default_cli_args_parser().parse_args(argv or sys.argv[1:])
-    try:
-        logging.basicConfig(
-            format='[%(asctime)s][%(name)s][%(levelname)s]: %(message)s',
-            level=args.log_level.upper())
-    except (TypeError, ValueError):
-        sys.exit('Worng log level. --help for more info.')
+    logging.basicConfig(
+        format='[%(asctime)s][%(name)s][%(levelname)s]: %(message)s',
+        level=args.log_level.upper())
     LOGGER.info('Starting pg_bawler listener for channel: %s', args.channel)
     loop = loop or asyncio.get_event_loop()
     _, listen_task = _main(
