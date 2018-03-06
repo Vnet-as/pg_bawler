@@ -145,13 +145,13 @@ Now to insert row to table ``foo`` execute:
 .. code-block:: bash
 
         cat <<EOF | psql
-        INSERT INTO foo (name, number, created) values ('Michal Kuffa', '1', '2016-10-01'::timestamp);
+        INSERT INTO foo (name, number, created) values ('michal', '1', '2016-10-01'::timestamp);
         EOF
 
 
 If everything's working, you should see in ``pg_bawler.listener``'s terminal something like::
 
-        [2016-11-02 21:52:42,266][pg_bawler.listener][INFO]: Received notification #1 pid 2964 from channel foo: INSERT {"id":3,"name":"Michal","number":1,"created":"2016-10-01T00:00:00"}
+        [2016-11-02 21:52:42,266][pg_bawler.listener][INFO]: Received notification #1 pid 2964 from channel foo: INSERT {"id":3,"name":"michal","number":1,"created":"2016-10-01T00:00:00"}
 
 
 This is behaviour of default handler, just log the notification.
