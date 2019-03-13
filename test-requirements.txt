@@ -1,4 +1,4 @@
-PyYAML==3.13
+PyYAML==5.1
 pytest==4.3.0
 pytest-asyncio==0.10.0
 pytest-cov==2.6.1
