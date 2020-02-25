@@ -1,5 +1,7 @@
+
 PyYAML==5.3
-pytest==5.3.2
+pytest==5.3.5
+
 pytest-asyncio==0.10.0
 pytest-cov==2.6.1
 docker-py==1.10.6
